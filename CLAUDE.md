@@ -23,11 +23,12 @@ uv run toeval --help
 uv run toeval ingest elia [load wind solar]     # incremental now, ignoring schedule and backoff
 uv run toeval backfill elia wind --from 2025-01-01 --to 2026-01-01   # naive times = Brussels
 uv run toeval run-due                           # what the scheduled task runs every 5 min
-uv run toeval status                            # watermark, last success, failures, next due
+uv run toeval transform                         # rebuild staging + marts from raw, run quality checks
+uv run toeval status                            # streams + the last transform's quality warnings
 .\scripts\scheduled-task.ps1 [-Uninstall]       # install/remove the Task Scheduler entry
 ```
 
-Logs: `data/logs/toeval.log` (rotating). Optional overrides: `sources.toml` (see the connector section).
+`ingest`, `backfill` and `run-due` transform automatically when raw changed. Logs: `data/logs/toeval.log` (rotating). Optional overrides: `sources.toml` (see the connector section).
 
 GitHub remote: `AlexanderJVP/toeval` (private until Phase 1 is presentable).
 
@@ -55,6 +56,7 @@ Do not scaffold folders or code for later phases ahead of time.
 - **0003:** Elia hierarchy. Solar (`ods032`) has a `region='Belgium'` total plus regions and provinces, so **never sum all rows**. Wind (`ods031`) has 5 disjoint parts with no total, so sum them and track `parts_present`. Load (`ods001`) is one national series.
 - **0004 (connector interface):** see the next section. Empty batches aren't written, so rows a source *withdraws* stay in raw and staging (known limitation).
 - **0005 (scheduled operation):** one Task Scheduler entry runs `toeval run-due` every 5 min via `.venv\Scripts\pythonw.exe -m toeval` (no console window). A stream is due when its schedule says so **and** the retry backoff after failed incremental runs has passed (5 min doubling to 6 h; `consecutive_failures` / `last_failure_at` in `stream_state`). Backfills don't touch `last_success_at` or the failure count. The rate limit is per stream run, not yet per source (deferred to iRail).
+- **0006 (staging, marts, quality):** see the warehouse section. Amends 0002: `revision_lag` is computed from successive raw versions, not per run.
 
 ## Connector architecture (`src/toeval/connectors/`, ADR 0004)
 
@@ -69,6 +71,15 @@ The interface must fit three source shapes without special cases: queryable hist
 - `lock.py`: single-writer `FileLock` (stale after 6 h), taken at the CLI level, not inside `run()`.
 - `registry.py` maps source names to connector classes. `src/toeval/pipeline.py` (`Pipeline`) applies `sources.toml` overrides (validated up front; unknown sources fail), decides what is due (`next_due`, `retry_delay`) and runs streams. `cli.py` adds settings, logging, the lock and the state store around it. Tests swap `registry.CONNECTORS` for fakes wired to mock servers with `fakes.bind`.
 - Tests inject `transport=httpx.MockTransport(...)`, a fake `clock`, and `http_options={"sleep": ...}`, so they never sleep or touch the network.
+
+## Warehouse (`src/toeval/warehouse/`, ADR 0006)
+
+- `transform.py` rebuilds everything from raw on every run (~9 s on all of Elia). It runs the SQL in `sql/staging/`, `sql/marts/` and `sql/quality/` in an in-memory DuckDB, `SET TimeZone = 'UTC'`, and writes one Parquet file per model, replaced atomically: `data/staging/stg_elia_{load,wind,solar}.parquet`, `data/marts/mart_energy_{15min,hourly}.parquet`. Models and checks are listed in `MODELS` / `checks()`.
+- SQL files reference only views (`raw_<source>_<stream>`, `stg_*`, `mart_*`); Python binds paths. Raw views read only `raw/` (never quarantine), with `filename = true, union_by_name = true`.
+- Staging = latest `_ingested_at` per natural key (`QUALIFY row_number()`), renamed columns with units, `interval_start_utc` as `TIMESTAMPTZ`.
+- Marts: gap-free 15-min grid (missing data = NULL row). Solar = `Belgium` row only. Wind = sum of the 5 parts, NULL unless all 5 are present (`wind_parts_present`). Hourly = mean of 4 quarters, NULL unless all 4 are present (`*_quarters`). Keys are UTC; `*_local` (Brussels) repeats in the fall-back hour. No imputation.
+- Quality checks **warn, never fail**. Each returns `subject, value, details`; the threshold is `Check.max_ok` in Python. Results go to the log, `toeval status` and `quality_results` in the state DB. `measured_holes` only warns on the last 30 days; known historical holes are listed in ADR 0006.
+- Tests (`tests/test_transform.py`) build raw files with the recorded fixtures' exact schemas and write them through `RawWriter`.
 
 ## Elia API facts (verified 2026-10-18)
 

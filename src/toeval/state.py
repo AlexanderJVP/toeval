@@ -82,6 +82,25 @@ class RawFileEntry:
     row_count: int
 
 
+@dataclass(frozen=True)
+class QualityResult:
+    """One quality check on one subject (e.g. `grid_gaps` on `elia/wind`) at one transform."""
+
+    checked_at: datetime
+    check: str
+    subject: str
+    value: float | None
+    unit: str
+    ok: bool
+    details: str = ""
+
+    @property
+    def summary(self) -> str:
+        value = "n/a" if self.value is None else f"{self.value:g} {self.unit}"
+        status = "ok" if self.ok else "WARN"
+        return f"{status}, {value}" + (f" ({self.details})" if self.details else "")
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS stream_state (
     source VARCHAR NOT NULL,
@@ -120,6 +139,15 @@ CREATE TABLE IF NOT EXISTS raw_files (
     ingested_at TIMESTAMP NOT NULL,
     content_hash VARCHAR NOT NULL,
     row_count BIGINT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS quality_results (
+    checked_at TIMESTAMP NOT NULL,
+    check_name VARCHAR NOT NULL,
+    subject VARCHAR NOT NULL,
+    value DOUBLE,
+    unit VARCHAR NOT NULL,
+    ok BOOLEAN NOT NULL,
+    details VARCHAR NOT NULL
 );
 """
 
@@ -341,6 +369,28 @@ class StateStore:
                 entry.row_count,
             ],
         )
+
+    # -- quality ----------------------------------------------------------------------------------
+
+    def add_quality_results(self, results: list[QualityResult]) -> None:
+        if not results:
+            return
+        self._con.executemany(
+            "INSERT INTO quality_results VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [
+                [_to_db(r.checked_at), r.check, r.subject, r.value, r.unit, r.ok, r.details]
+                for r in results
+            ],
+        )
+
+    def latest_quality_results(self) -> list[QualityResult]:
+        """The results of the most recent transform."""
+        rows = self._con.execute(
+            "SELECT checked_at, check_name, subject, value, unit, ok, details FROM quality_results"
+            " WHERE checked_at = (SELECT max(checked_at) FROM quality_results)"
+            " ORDER BY check_name, subject"
+        ).fetchall()
+        return [QualityResult(_from_db(t), *rest) for t, *rest in rows]  # type: ignore[arg-type]
 
     def raw_files(self, source: str, stream: str) -> list[RawFileEntry]:
         rows = self._con.execute(

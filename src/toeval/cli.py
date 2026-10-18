@@ -46,9 +46,9 @@ def ingest(
     source: str,
     streams: Annotated[list[str] | None, typer.Argument(help="Default: all streams.")] = None,
 ) -> None:
-    """Run incremental ingestion now, whether or not the streams are due."""
+    """Run incremental ingestion now, whether or not the streams are due; then transform."""
     with _pipeline() as pipeline:
-        _finish(_run(lambda: pipeline.run(source, streams)))
+        _ingest_then_transform(pipeline, lambda: pipeline.run(source, streams))
 
 
 @app.command()
@@ -61,15 +61,14 @@ def backfill(
     ] = None,
     to: Annotated[str | None, typer.Option(help="Exclusive end, same format.")] = None,
 ) -> None:
-    """Re-fetch a historical range (default: the stream's whole history)."""
+    """Re-fetch a historical range (default: the stream's whole history); then transform."""
     start, end = _parse_time(from_), _parse_time(to)
     with _pipeline() as pipeline:
-        _finish(
-            _run(
-                lambda: pipeline.run(
-                    source, [stream], RunMode.BACKFILL, backfill_from=start, backfill_to=end
-                )
-            )
+        _ingest_then_transform(
+            pipeline,
+            lambda: pipeline.run(
+                source, [stream], RunMode.BACKFILL, backfill_from=start, backfill_to=end
+            ),
         )
 
 
@@ -78,7 +77,14 @@ def run_due() -> None:
     """Run every stream that is due (the scheduled task calls this every 5 minutes)."""
     # A held lock means the previous scheduled run is still busy: skip quietly, exit 0.
     with _pipeline(busy_ok=True) as pipeline:
-        _finish(_run(pipeline.run_due))
+        _ingest_then_transform(pipeline, pipeline.run_due)
+
+
+@app.command()
+def transform() -> None:
+    """Rebuild staging and marts from raw, then run the quality checks."""
+    with _pipeline() as pipeline:
+        _finish([], _transform(pipeline))
 
 
 @app.command()
@@ -105,6 +111,15 @@ def status() -> None:
                 f"{s.source}/{s.stream}: watermark {wm}, last success "
                 f"{_fmt(s.state.last_success_at)}{failures}, next due {_fmt(s.next_due) or 'now'}"
             )
+        quality = store.latest_quality_results()
+        if quality:
+            warnings = [q for q in quality if not q.ok]
+            typer.echo(
+                f"quality at {_fmt(quality[0].checked_at)}: "
+                f"{len(quality) - len(warnings)} ok, {len(warnings)} warnings"
+            )
+            for q in warnings:
+                typer.echo(f"  {q.check} {q.subject}: {q.summary}")
 
 
 # -- helpers -------------------------------------------------------------------------------------
@@ -148,7 +163,33 @@ def _run(action: Callable[[], Sequence[StreamRunResult]]) -> Sequence[StreamRunR
         raise typer.Exit(EXIT_USAGE) from None
 
 
-def _finish(results: Sequence[StreamRunResult]) -> None:
+def _ingest_then_transform(
+    pipeline: Pipeline, action: Callable[[], Sequence[StreamRunResult]]
+) -> None:
+    results = _run(action)
+    transformed = _transform(pipeline) if pipeline.needs_transform(results) else True
+    _finish(results, transformed)
+
+
+def _transform(pipeline: Pipeline) -> bool:
+    """Run the transform; False if it failed (logged, and reported through the exit code)."""
+    try:
+        result = pipeline.transform()
+    except Exception:
+        log.exception("transform failed")
+        typer.echo("transform: FAILED (see data/logs/toeval.log)", err=True)
+        return False
+    typer.echo(f"transform: built {', '.join(result.built) or 'nothing'}")
+    if result.skipped:
+        typer.echo(f"transform: skipped {', '.join(result.skipped)} (inputs not ingested yet)")
+    ok = len(result.quality) - len(result.warnings)
+    typer.echo(f"quality: {ok} ok, {len(result.warnings)} warnings")
+    for q in result.warnings:
+        typer.echo(f"  {q.check} {q.subject}: {q.summary}")
+    return True
+
+
+def _finish(results: Sequence[StreamRunResult], transformed: bool = True) -> None:
     for r in results:
         if r.succeeded:
             wm = r.watermark_after.serialize() if r.watermark_after else "-"
@@ -158,7 +199,7 @@ def _finish(results: Sequence[StreamRunResult]) -> None:
             )
         else:
             typer.echo(f"{r.source}/{r.stream}: FAILED: {r.error}", err=True)
-    if any(not r.succeeded for r in results):
+    if any(not r.succeeded for r in results) or not transformed:
         raise typer.Exit(EXIT_FAILED)
 
 

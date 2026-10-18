@@ -149,3 +149,14 @@ con = duckdb.connect(sys.argv[1])
 print("ready", flush=True)
 time.sleep(60)
 """
+
+
+def test_transform_command_and_run_due_trigger(data_dir: Path) -> None:
+    transform = runner.invoke(app, ["transform"])
+    first = runner.invoke(app, ["run-due"])  # writes raw files -> transforms
+    second = runner.invoke(app, ["run-due"])  # nothing written, nothing missing -> no transform
+
+    assert transform.exit_code == 0, transform.output
+    assert "transform: built nothing" in transform.output  # fake sources have no Elia models
+    assert "transform:" in first.output
+    assert "transform:" not in second.output

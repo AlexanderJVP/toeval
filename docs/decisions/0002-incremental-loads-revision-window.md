@@ -1,6 +1,6 @@
 # 0002. Incremental loads use a watermark plus a measured revision window
 
-- Status: accepted, amended by 0004 (fetch range formula; watermark no longer waits for staging). Window size is provisional and will be tuned from logged data.
+- Status: accepted, amended by 0004 (fetch range formula; watermark no longer waits for staging) and 0006 (`revision_lag` is computed from raw versions). Window size is provisional and will be tuned from logged data.
 - Date: 2026-10-18
 
 ## Context
@@ -15,7 +15,7 @@ The ingestion runs on a laptop via Task Scheduler, so runs will be missed when i
 
 1. **Fetch range** = `watermark - revision_window` → `now + forecast_horizon`. After any number of missed runs, the next run catches up automatically and still re-checks the window before the old watermark. A test covers this. (Originally `min(watermark, now - revision_window)`, corrected in 0004.)
 2. **Default revision window: 14 days.** Monthly, a **deep re-fetch of 90 days**.
-3. **Measure instead of guessing:** each run compares re-fetched rows with the current staging values and logs the age of the oldest changed row (`revision_lag`). Window sizes get tuned from these logs after a few weeks.
+3. **Measure instead of guessing:** log the age of the oldest changed row (`revision_lag`) and tune the window sizes from it after a few weeks. (Originally: each run compares re-fetched rows with staging. 0006 computes it from successive raw versions instead, as a quality check after every transform.)
 4. **Watermark** = latest timestamp with a non-null *measured* value, not the latest row (forecast rows run ahead). It is updated only after the raw writes and quality checks succeed. (Originally it also waited for the staging rebuild. 0004 decouples transformation from ingestion.)
 5. **Idempotency:** a fetch whose content hash equals the previous fetch for the same range is not written again. Staging keeps the latest ingested version per natural key, so duplicate fetches never duplicate rows.
 6. **Backfill** uses the same code path, chunked per dataset so one export stays well under the HTTP timeout: 365 days for load, 182 for wind, 91 for solar (exports of the multi-row datasets are slow; `src/toeval/connectors/elia.py`). (Originally "chunked by year".)

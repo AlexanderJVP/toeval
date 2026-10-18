@@ -42,6 +42,14 @@ class Settings(BaseSettings):
         return self.data_path / "quarantine"
 
     @property
+    def staging_path(self) -> Path:
+        return self.data_path / "staging"
+
+    @property
+    def marts_path(self) -> Path:
+        return self.data_path / "marts"
+
+    @property
     def log_path(self) -> Path:
         return self.data_path / "logs"
 

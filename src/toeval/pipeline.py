@@ -13,6 +13,7 @@ from toeval.connectors import registry
 from toeval.connectors.base import Connector, RunMode, StreamRunResult
 from toeval.connectors.spec import SourceSpec, StreamSpec, load_overrides
 from toeval.state import StateStore, StreamState
+from toeval.warehouse.transform import TransformResult, outputs_missing, transform
 
 log = logging.getLogger(__name__)
 
@@ -134,6 +135,20 @@ class Pipeline:
             if streams:
                 results.extend(self.run(source, streams))
         return results
+
+    def needs_transform(self, results: Sequence[StreamRunResult]) -> bool:
+        """After ingestion: rebuild when raw changed, or when an output doesn't exist yet."""
+        return any(r.stats.files_written for r in results) or outputs_missing(self._settings)
+
+    def transform(self) -> TransformResult:
+        windows = [
+            s.revision_window
+            for source in self.sources
+            for s in self.spec(source).streams
+            if s.revision_window is not None
+        ]
+        kwargs = {"revision_window": min(windows)} if windows else {}
+        return transform(self._settings, self._store, now=self._clock(), **kwargs)
 
     def status(self) -> list[StreamStatus]:
         out = []
