@@ -115,6 +115,7 @@ Each significant decision has a short record with its context and trade-offs:
 | [0004](docs/decisions/0004-connector-interface.md) | A connector interface that doesn't assume Elia's patterns |
 | [0005](docs/decisions/0005-scheduled-operation.md) | Scheduled operation: one task, retry backoff, no console window |
 | [0006](docs/decisions/0006-staging-marts-quality.md) | Staging, marts and quality checks: full rebuilds, warnings not failures |
+| [0007](docs/decisions/0007-admin-console.md) | A local admin console that never becomes a second writer |
 
 ## Running it
 
@@ -141,6 +142,8 @@ uv run toeval transform                                           # rebuild stag
 ```
 
 Exit codes: 0 ok, 1 a stream or the transform failed, 2 usage error, 3 another run holds the lock. Logs go to `data/logs/toeval.log`.
+
+For a visual overview, `uv run python -m toeval ui` opens a local admin console at http://127.0.0.1:8765. It shows overall health, each stream's freshness and runs, the warehouse layers, the quality checks and the scheduled task's state. For now it is read-only; actions and a live run feed are planned ([ADR 0007](docs/decisions/0007-admin-console.md)).
 
 Reading the marts:
 
@@ -178,7 +181,7 @@ CI runs lint, format and tests on Windows for every push.
 
 ```text
 src/toeval/
-  cli.py                    typer CLI: ingest, backfill, run-due, transform, status
+  cli.py                    typer CLI: ingest, backfill, run-due, transform, status, ui
   pipeline.py               what is due, retry backoff, sources.toml overrides
   state.py                  state DB: watermarks, runs, raw manifest, quality results
   lock.py                   single-writer lock file
@@ -192,6 +195,7 @@ src/toeval/
     raw.py                  immutable raw writer and quarantine
     transform.py            rebuilds staging + marts, runs quality checks
     sql/                    staging/, marts/, quality/ (plain SQL)
+  ui/                       admin console: FastAPI app, snapshot, static page
 tests/
   fakes.py                  one fake source per shape (history, live, periodic)
   fixtures/elia/            recorded Elia exports

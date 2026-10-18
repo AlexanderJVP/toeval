@@ -11,11 +11,13 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "duckdb>=1.5.6",
+    "fastapi>=0.146.0",
     "httpx>=0.28.1",
     "pyarrow>=26.0.0",
     "pydantic-settings>=2.16.0",
     "typer>=0.27.3",
     "tzdata>=2026.5",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
@@ -44,3 +46,8 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF", "DTZ", "PT"]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers -m 'not live'"
 markers = ["live: hits real external APIs (deselected by default)"]
+filterwarnings = [
+    # Starlette's TestClient nudges towards the `httpx2` package; plain httpx (already a
+    # dependency) still works, so don't add a package just to silence this.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]

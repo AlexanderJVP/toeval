@@ -137,6 +137,27 @@ def status() -> None:
                 typer.echo(f"  {q.check} {q.subject}: {q.summary}")
 
 
+@app.command()
+def ui(
+    port: Annotated[int, typer.Option(help="Port on 127.0.0.1.")] = 8765,
+    browser: Annotated[bool, typer.Option(help="Open the console in your browser.")] = True,
+) -> None:
+    """Open the local admin console (read-only status page) at http://127.0.0.1:PORT."""
+    import threading
+    import webbrowser
+
+    import uvicorn
+
+    from toeval.ui.app import create_app
+
+    settings = _setup()
+    url = f"http://127.0.0.1:{port}/"
+    typer.echo(f"toeval console on {url} (Ctrl+C to stop)")
+    if browser:
+        threading.Timer(1.0, webbrowser.open, [url]).start()
+    uvicorn.run(create_app(settings), host="127.0.0.1", port=port, log_level="warning")
+
+
 # -- helpers -------------------------------------------------------------------------------------
 
 

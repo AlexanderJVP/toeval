@@ -25,6 +25,7 @@ uv run toeval backfill elia wind --from 2025-01-01 --to 2026-01-01   # naive tim
 uv run toeval run-due                           # what the scheduled task runs every 5 min
 uv run toeval transform                         # rebuild staging + marts from raw, run quality checks
 uv run toeval status                            # streams + the last transform's quality warnings
+uv run python -m toeval ui                      # local admin console on http://127.0.0.1:8765 (read-only for now)
 .\scripts\scheduled-task.ps1 [-Uninstall]       # install/remove the Task Scheduler entry
 ```
 
@@ -56,6 +57,7 @@ Do not scaffold folders or code for later phases ahead of time.
 - **0003:** Elia hierarchy. Solar (`ods032`) has a `region='Belgium'` total plus regions and provinces, so **never sum all rows**. Wind (`ods031`) has 5 disjoint parts with no total, so sum them and track `parts_present`. Load (`ods001`) is one national series.
 - **0004 (connector interface):** see the next section. Empty batches aren't written, so rows a source *withdraws* stay in raw and staging (known limitation).
 - **0005 (scheduled operation):** one Task Scheduler entry runs `toeval run-due` every 5 min via `.venv\Scripts\pythonw.exe -m toeval` (no console window). A stream is due when its schedule says so **and** the retry backoff after failed incremental runs has passed (5 min doubling to 6 h; `consecutive_failures` / `last_failure_at` in `stream_state`). Backfills don't touch `last_success_at` or the failure count. The lock holder's PID is checked, so a killed run's lock is taken over at once, and its `running` rows are marked failed (`StateStore.abort_orphaned`). A failed transform is recorded in `transforms` and retried with the same backoff while the warehouse is behind raw (`Pipeline.needs_transform`). The rate limit is per stream run, not yet per source (deferred to iRail).
+- **0007 (admin console):** `toeval ui` (`src/toeval/ui/`, FastAPI on 127.0.0.1 + plain JS/SVG, no Node). The pipeline stays the **only writer**: the UI reads the state DB read-only, will change config only via `sources.toml`, and will trigger work only by starting CLI commands. Built: step 1 (status page); next: live run feed, actions, schedule editor.
 - **0006 (staging, marts, quality):** see the warehouse section. Amends 0002: `revision_lag` is computed from successive raw versions, not per run.
 
 ## Connector architecture (`src/toeval/connectors/`, ADR 0004)

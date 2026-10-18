@@ -401,6 +401,25 @@ class StateStore:
             ],
         )
 
+    def recent_runs(self, limit: int = 20) -> list[dict[str, object]]:
+        """Newest first; timestamps as aware UTC."""
+        cur = self._con.execute("SELECT * FROM runs ORDER BY started_at DESC LIMIT ?", [limit])
+        cols = [d[0] for d in cur.description]
+        return [
+            {
+                c: _from_db(v) if isinstance(v, datetime) else v
+                for c, v in zip(cols, row, strict=True)
+            }
+            for row in cur.fetchall()
+        ]
+
+    def raw_stats(self) -> dict[tuple[str, str], tuple[int, int]]:
+        """(source, stream) -> (raw files, rows in them) from the manifest."""
+        rows = self._con.execute(
+            "SELECT source, stream, count(*), sum(row_count) FROM raw_files GROUP BY ALL"
+        ).fetchall()
+        return {(src, stream): (int(n), int(total)) for src, stream, n, total in rows}
+
     def get_run(self, run_id: str) -> dict[str, object]:
         cur = self._con.execute("SELECT * FROM runs WHERE run_id = ?", [run_id])
         cols = [d[0] for d in cur.description]
