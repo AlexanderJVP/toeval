@@ -13,7 +13,7 @@ uv lives in `~/.local/bin`. If `uv` isn't found, prepend it to PATH.
 ```powershell
 uv sync                          # install deps (incl. dev group)
 uv run pytest                    # tests; `live`-marked tests (real APIs) are deselected by default
-uv run pytest -m live            # only live API tests (exit code 5 while none exist)
+uv run pytest -m live            # only live API tests (hit the real Elia API)
 uv run pytest tests/test_cli.py::test_version_command_prints_version   # single test
 uv run ruff check . ; uv run ruff format .
 uv run pre-commit run --all-files
@@ -61,11 +61,18 @@ The interface must fit three source shapes without special cases: queryable hist
 
 ## Elia API facts (verified 2026-10-18)
 
+Implemented in `src/toeval/connectors/elia.py`: source `elia`, streams `load` (ods001), `wind` (ods031), `solar` (ods032). Fixtures and how to re-record them: `tests/fixtures/elia/README.md`.
+
 - Opendatasoft Explore v2.1 at `https://opendata.elia.be/api/explore/v2.1/`. No key. Rate limit 100M calls/day.
-- `/records` caps `offset + limit` at 10,000. For bulk data use `/exports/parquet?where=...` (one year of ods001 ≈ 2 MB, ~7 s).
-- `datetime` is the interval **start**, in UTC. Resolution PT15M. Values are in MW.
-- History: ods001 and ods031 from 2015-01-01 (Brussels time), ods032 from 2020-10-01. ods001 includes week-ahead forecast rows where `totalload` is null.
+- `/records` caps `offset + limit` at 10,000, so every request is `/exports/parquet?where=datetime >= '<Z>' and datetime < '<Z>'`. An empty range returns a valid file with the full schema.
+- Exports are slow: one year of ods001 ≈ 2 MB / 7 s, ods031 ≈ 9 MB / 48 s, ods032 ≈ 27 MB / 119 s. Hence chunks of 365 / 182 / 91 days and a 180 s timeout.
+- `datetime` is the interval **start**, `timestamp[ms, tz=UTC]`. Resolution PT15M everywhere. Values are in MW.
+- History: ods001 and ods031 from 2014-12-31T23:00Z (2015-01-01 Brussels), ods032 from 2020-09-30T22:00Z.
+- ods001 has ~7 days of forecast rows (`totalload` null) and measured values up to the morning of the current day. ods031 and ods032 have **no forecast rows** and end at the last completed Brussels day.
+- Exports send no ETag/Last-Modified. Rows come back unsorted, so `fetch` sorts by the natural key. The same window downloads byte-identically, so the raw dedup works.
+- Natural keys: load `datetime`; wind `datetime, offshoreonshore, region, gridconnectiontype`; solar `datetime, region` (see ADR 0003).
 - Licence: Elia Open Data Licence.
+- DuckDB needs `pytz` to return `TIMESTAMP WITH TIME ZONE` values to Python (`fetchall`). It isn't installed, so keep timestamps in SQL/Arrow, or cast them to text.
 
 ## Conventions
 
