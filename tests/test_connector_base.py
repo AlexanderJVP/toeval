@@ -17,6 +17,7 @@ from fakes import (
 )
 from toeval.config import Settings
 from toeval.connectors.base import RunMode, UnsupportedModeError
+from toeval.connectors.spec import is_due
 from toeval.state import StateStore, Watermark
 
 NO_SLEEP = {"sleep": lambda _s: None}
@@ -189,6 +190,25 @@ def test_backfill_of_an_old_range_never_moves_the_watermark_back(
     assert store.get_stream_state("series", "hourly").watermark == watermark
 
 
+def test_backfill_does_not_make_the_scheduled_run_look_done(
+    settings: Settings, store: StateStore, series_server: SeriesServer
+) -> None:
+    clock = FakeClock(datetime(2026, 1, 20, 7, tzinfo=UTC))  # after the 06:30 schedule
+    connector = make_series(settings, store, series_server, clock)
+
+    result = connector.run(
+        "hourly",
+        RunMode.BACKFILL,
+        backfill_from=ORIGIN,
+        backfill_to=datetime(2026, 1, 3, tzinfo=UTC),
+    )
+
+    state = store.get_stream_state("series", "hourly")
+    assert result.succeeded
+    assert state.last_success_at is None
+    assert is_due(connector.source.stream("hourly").schedule, state.last_success_at, clock())
+
+
 def test_duplicate_natural_keys_fail_the_quality_gate_and_are_quarantined(
     settings: Settings, store: StateStore
 ) -> None:
@@ -288,7 +308,7 @@ def test_period_stream_tracks_reference_period_and_uses_last_modified(
     assert server.requests[-1].headers["If-Modified-Since"] == server.last_modified
 
 
-# -- regressions from docs/repo-analysis-2026-10-18.md -------------------------------------------
+# -- failure paths and path collisions -----------------------------------------------------------
 
 
 def test_identical_batches_within_one_run_do_not_collide(
@@ -350,3 +370,47 @@ def test_interrupt_marks_the_run_failed_and_propagates(
 
     statuses = store._con.execute("SELECT status FROM runs").fetchall()
     assert statuses == [("failed",)]
+
+
+def test_failed_state_commit_marks_the_run_failed(
+    settings: Settings,
+    store: StateStore,
+    series_server: SeriesServer,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def broken_commit(*_args: object, **_kwargs: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(store, "finish_run_success", broken_commit)
+    clock = FakeClock(datetime(2026, 1, 20, 13, tzinfo=UTC))
+
+    result = make_series(settings, store, series_server, clock).run("hourly")
+
+    assert not result.succeeded
+    assert "state commit failed: OSError: disk full" in (result.error or "")
+    assert store.get_run(result.run_id)["status"] == "failed"
+    assert store.get_stream_state("series", "hourly").watermark is None
+
+
+def test_interrupt_during_state_commit_rolls_back_and_marks_the_run_failed(
+    settings: Settings,
+    store: StateStore,
+    series_server: SeriesServer,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    real_finish = store._finish
+
+    def interrupted_finish(run_id: str, status: str, *args: object) -> None:
+        if status == "success":
+            raise KeyboardInterrupt
+        real_finish(run_id, status, *args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(store, "_finish", interrupted_finish)
+    clock = FakeClock(datetime(2026, 1, 20, 13, tzinfo=UTC))
+
+    with pytest.raises(KeyboardInterrupt):
+        make_series(settings, store, series_server, clock).run("hourly")
+
+    # The stream_state insert of the interrupted transaction was rolled back.
+    assert store.get_stream_state("series", "hourly").watermark is None
+    assert store._con.execute("SELECT status FROM runs").fetchall() == [("failed",)]

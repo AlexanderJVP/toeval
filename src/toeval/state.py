@@ -216,7 +216,7 @@ class StateStore:
             )
             self._finish(run_id, "success", stats, finished_at, watermark_before, wm, None)
             self._con.execute("COMMIT")
-        except Exception:
+        except BaseException:  # incl. KeyboardInterrupt: never leave the transaction open
             self._con.execute("ROLLBACK")
             raise
 

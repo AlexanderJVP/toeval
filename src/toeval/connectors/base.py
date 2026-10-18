@@ -213,14 +213,7 @@ class Connector(ABC):
                     )
         except BaseException as exc:
             stats.requests = http.requests_sent if http else 0
-            error = f"{type(exc).__name__}: {exc}"
-            log.exception("%s/%s: run %s failed", self.source.name, stream.name, run_id[:8])
-            self.store.finish_run_failed(run_id, stats.freeze(), self._clock(), before, error)
-            if not isinstance(exc, Exception):  # KeyboardInterrupt, SystemExit: record, then stop
-                raise
-            return StreamRunResult(
-                self.source.name, stream.name, run_id, False, stats.freeze(), before, before, error
-            )
+            return self._fail(stream, run_id, stats, before, exc)
         finally:
             if http is not None:
                 http.close()
@@ -230,11 +223,15 @@ class Connector(ABC):
             source=self.source.name,
             stream=stream.name,
             watermark=watermark,
-            last_success_at=now,
+            # A backfill of an old range must not make the scheduled run look done.
+            last_success_at=now if mode is RunMode.INCREMENTAL else state.last_success_at,
             last_deep_refetch_at=now if deep else state.last_deep_refetch_at,
             http_validators=validators,
         )
-        self.store.finish_run_success(run_id, new_state, stats.freeze(), self._clock(), before)
+        try:
+            self.store.finish_run_success(run_id, new_state, stats.freeze(), self._clock(), before)
+        except BaseException as exc:  # the store rolled back; record the run as failed instead
+            return self._fail(stream, run_id, stats, before, exc, "state commit failed: ")
         log.info(
             "%s/%s: run %s ok: %d requests (%d not modified), %d rows, %d files, watermark %s",
             self.source.name,
@@ -248,6 +245,25 @@ class Connector(ABC):
         )
         return StreamRunResult(
             self.source.name, stream.name, run_id, True, stats.freeze(), before, watermark
+        )
+
+    def _fail(
+        self,
+        stream: StreamSpec,
+        run_id: str,
+        stats: "_MutableStats",
+        before: Watermark | None,
+        exc: BaseException,
+        prefix: str = "",
+    ) -> StreamRunResult:
+        """Mark the run failed. KeyboardInterrupt / SystemExit are recorded, then re-raised."""
+        error = f"{prefix}{type(exc).__name__}: {exc}"
+        log.exception("%s/%s: run %s failed", self.source.name, stream.name, run_id[:8])
+        self.store.finish_run_failed(run_id, stats.freeze(), self._clock(), before, error)
+        if not isinstance(exc, Exception):
+            raise exc
+        return StreamRunResult(
+            self.source.name, stream.name, run_id, False, stats.freeze(), before, before, error
         )
 
     @staticmethod
