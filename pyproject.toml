@@ -3,6 +3,8 @@ name = "toeval"
 version = "0.1.0"
 description = "Toeval: a personal Belgian open-data platform for spurious correlations and self-supervised time-series learning."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Alexander Van Puyenbroeck", email = "alexander.van.puyenbroeck15@gmail.com" }
 ]

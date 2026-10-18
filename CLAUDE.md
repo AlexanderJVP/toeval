@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 hasn't started; plan it with the owner first. The original brief is `claude-code-kickoff-prompt.md`. **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 hasn't started; plan it with the owner first. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
 ## Commands
 

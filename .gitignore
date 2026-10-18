@@ -28,3 +28,7 @@ logs/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Local working notes, not part of the project
+claude-code-kickoff-prompt.md
+docs/repo-analysis-*.md

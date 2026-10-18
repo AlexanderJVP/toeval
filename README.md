@@ -207,6 +207,6 @@ scripts/scheduled-task.ps1  Task Scheduler setup
 4. **JEPA:** self-supervised pretraining (mask time spans, predict their latent representation), few-label downstream tasks, and an honest comparison against simple baselines. With a corpus this small, "the baselines win" is a legitimate result and will be reported as such.
 5. **Presentation:** a public dashboard or report.
 
-## Data attribution
+## Licence and data attribution
 
-Elia data: © Elia, published under the [Elia Open Data Licence](https://opendata.elia.be). The recorded test fixtures in `tests/fixtures/elia/` are small extracts of it.
+The code is MIT-licensed ([LICENSE](LICENSE)). The data is not covered by that licence: Elia data is © Elia, published under the [Elia Open Data Licence](https://opendata.elia.be). The recorded test fixtures in `tests/fixtures/elia/` are small extracts of it.
