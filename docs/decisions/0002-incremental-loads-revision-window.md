@@ -1,6 +1,6 @@
 # 0002. Incremental loads use a watermark plus a measured revision window
 
-- Status: accepted (window size provisional, to be tuned from logged data)
+- Status: accepted, amended by 0004 (fetch range formula; watermark no longer waits for staging). Window size is provisional and will be tuned from logged data.
 - Date: 2026-10-18
 
 ## Context
@@ -13,10 +13,10 @@ The ingestion runs on a laptop via Task Scheduler, so runs will be missed when i
 
 ## Decision
 
-1. **Fetch range** = `min(watermark, now - revision_window)` → `now + forecast_horizon`. After any number of missed runs, the next run catches up automatically. A test covers this.
+1. **Fetch range** = `watermark - revision_window` → `now + forecast_horizon`. After any number of missed runs, the next run catches up automatically and still re-checks the window before the old watermark. A test covers this. (Originally `min(watermark, now - revision_window)`, corrected in 0004.)
 2. **Default revision window: 14 days.** Monthly, a **deep re-fetch of 90 days**.
 3. **Measure instead of guessing:** each run compares re-fetched rows with the current staging values and logs the age of the oldest changed row (`revision_lag`). Window sizes get tuned from these logs after a few weeks.
-4. **Watermark** = latest timestamp with a non-null *measured* value, not the latest row (forecast rows run ahead). It is updated only after raw write, quality checks and staging rebuild all succeed.
+4. **Watermark** = latest timestamp with a non-null *measured* value, not the latest row (forecast rows run ahead). It is updated only after the raw writes and quality checks succeed. (Originally it also waited for the staging rebuild. 0004 decouples transformation from ingestion.)
 5. **Idempotency:** a fetch whose content hash equals the previous fetch for the same range is not written again. Staging keeps the latest ingested version per natural key, so duplicate fetches never duplicate rows.
 6. **Backfill** uses the same code path, chunked by year.
 
