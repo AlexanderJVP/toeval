@@ -139,6 +139,9 @@ class HttpPolicy(_Frozen):
     max_retries: int = Field(default=5, ge=0)
     backoff_base: Duration = timedelta(seconds=1)
     backoff_max: Duration = timedelta(seconds=60)
+    # A server asking to wait longer than this fails the request instead of stalling the run
+    # (and holding the ingest lock) for hours.
+    max_retry_after: Duration = timedelta(minutes=5)
     timeout: Duration = timedelta(seconds=60)
     retry_statuses: frozenset[int] = frozenset({429, 500, 502, 503, 504})
 

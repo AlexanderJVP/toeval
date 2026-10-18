@@ -193,6 +193,11 @@ class HttpClient:
                 raise HttpError(f"GET {url} gave up after {attempt + 1} attempts ({reason})")
             if delay is None:
                 delay = self._backoff(attempt)
+            elif delay > self._policy.max_retry_after.total_seconds():
+                raise HttpError(
+                    f"GET {url}: server asked to retry after {delay:.0f}s, more than "
+                    f"max_retry_after ({self._policy.max_retry_after}); giving up for this run"
+                )
             log.warning(
                 "GET %s: %s, retry %d/%d in %.1fs",
                 url,

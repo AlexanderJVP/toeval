@@ -23,3 +23,14 @@ def test_stale_lock_is_taken_over(tmp_path: Path) -> None:
     with FileLock(path, stale_after=6 * 3600):
         assert path.exists()
     assert not path.exists()
+
+
+def test_release_leaves_a_lock_that_was_taken_over(tmp_path: Path) -> None:
+    path = tmp_path / "ingest.lock"
+    lock = FileLock(path)
+    lock.acquire()
+    path.write_text('{"token": "someone-else"}', encoding="utf-8")  # simulated takeover
+
+    lock.release()
+
+    assert path.exists()

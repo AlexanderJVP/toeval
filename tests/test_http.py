@@ -180,3 +180,14 @@ def test_token_bucket_allows_burst_then_paces() -> None:
 
     assert len(sleeps) == 3  # 5 free, then 3 paced
     assert sum(sleeps) == pytest.approx(1.0)  # 3 tokens at 3/s
+
+
+def test_excessive_retry_after_fails_instead_of_stalling() -> None:
+    sleeps: list[float] = []
+    c, rec = client([httpx.Response(429, headers={"Retry-After": "86400"})], sleeps)
+
+    with pytest.raises(HttpError, match="max_retry_after"):
+        c.get("https://x.test/a")
+
+    assert sleeps == []
+    assert len(rec.requests) == 1
