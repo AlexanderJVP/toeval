@@ -37,6 +37,11 @@ class Settings(BaseSettings):
         return self.data_path / "raw"
 
     @property
+    def quarantine_path(self) -> Path:
+        """Batches that failed hard quality checks; deliberately outside raw_path."""
+        return self.data_path / "quarantine"
+
+    @property
     def state_db_path(self) -> Path:
         return self.data_path / "state" / "state.duckdb"
 

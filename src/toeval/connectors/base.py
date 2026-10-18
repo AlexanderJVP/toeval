@@ -106,7 +106,7 @@ class Connector(ABC):
         self.settings = settings
         self.store = store
         self.source = spec or type(self).spec  # instance copy may carry sources.toml overrides
-        self._raw = RawWriter(settings.raw_path, store)
+        self._raw = RawWriter(settings.raw_path, settings.quarantine_path, store)
         self._transport = transport
         self._clock = clock
         self._http_options = dict(http_options or {})  # test hooks: sleep, clock, rng, environ
@@ -166,15 +166,17 @@ class Connector(ABC):
 
         stats = _MutableStats()
         validators = {k: dict(v) for k, v in state.http_validators.items()}
-        http = HttpClient(
-            self.source.http,
-            self.source.auth,
-            user_agent=self.settings.user_agent,
-            validators=validators,
-            transport=self._transport,
-            **self._http_options,
-        )
+        http: HttpClient | None = None
+        # Everything after start_run is inside the try, so no run is ever left 'running'.
         try:
+            http = HttpClient(
+                self.source.http,
+                self.source.auth,
+                user_agent=self.settings.user_agent,
+                validators=validators,
+                transport=self._transport,
+                **self._http_options,
+            )
             watermark = before
             for request in self.plan(stream, state, ctx):
                 result = self.fetch(stream, request, http)
@@ -186,7 +188,12 @@ class Connector(ABC):
                 failures = _generic_checks(stream, table) + self.validate(stream, table)
                 if failures:
                     path = self._raw.quarantine(
-                        self.source.name, stream.name, table, run_id=run_id, ingested_at=now
+                        self.source.name,
+                        stream.name,
+                        table,
+                        run_id=run_id,
+                        request_key=request.key,
+                        ingested_at=now,
                     )
                     raise QualityGateError(
                         f"request {request.key}: " + "; ".join(failures) + f" (quarantined: {path})"
@@ -204,16 +211,19 @@ class Connector(ABC):
                     watermark = _max_watermark(
                         watermark, self.next_watermark(stream, watermark, table)
                     )
-        except Exception as exc:
-            stats.requests = http.requests_sent
+        except BaseException as exc:
+            stats.requests = http.requests_sent if http else 0
             error = f"{type(exc).__name__}: {exc}"
             log.exception("%s/%s: run %s failed", self.source.name, stream.name, run_id[:8])
             self.store.finish_run_failed(run_id, stats.freeze(), self._clock(), before, error)
+            if not isinstance(exc, Exception):  # KeyboardInterrupt, SystemExit: record, then stop
+                raise
             return StreamRunResult(
                 self.source.name, stream.name, run_id, False, stats.freeze(), before, before, error
             )
         finally:
-            http.close()
+            if http is not None:
+                http.close()
 
         stats.requests = http.requests_sent
         new_state = StreamState(

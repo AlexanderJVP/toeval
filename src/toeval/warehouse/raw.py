@@ -1,6 +1,9 @@
 """Immutable raw layer: one Parquet file per fetched batch, never modified afterwards.
 
-Layout: <raw>/<source>/<stream>/ingest_date=YYYY-MM-DD/<HHMMSS>_<run>_<hash>.parquet
+Layout: <raw>/<source>/<stream>/ingest_date=YYYY-MM-DD/<HHMMSS>_<run>_<request>_<hash>.parquet
+(<request> is a hash of the request key, so identical batches of one run never share a path).
+Empty batches are not written: they carry no rows for staging to keep.
+Batches failing hard quality checks go to a separate quarantine root, never under raw.
 Each file carries `_ingested_at` and `_request_key` columns so staging can keep the latest version
 of every natural key. A batch is skipped only when it provably adds nothing (see
 `StateStore.is_unchanged`), which makes re-runs cheap without ever losing the latest observation.
@@ -33,8 +36,9 @@ def content_hash(table: pa.Table) -> str:
 
 
 class RawWriter:
-    def __init__(self, raw_root: Path, store: StateStore) -> None:
+    def __init__(self, raw_root: Path, quarantine_root: Path, store: StateStore) -> None:
         self._root = raw_root
+        self._quarantine_root = quarantine_root
         self._store = store
 
     def write(
@@ -48,6 +52,9 @@ class RawWriter:
         ingested_at: datetime,
     ) -> RawFileEntry | None:
         """Persist a batch. Returns None when it would add no information."""
+        if table.num_rows == 0:
+            log.debug("%s/%s %s: empty batch, not written", source, stream, request_key)
+            return None
         digest = content_hash(table)
         if self._store.is_unchanged(source, stream, request_key, digest, run_id):
             log.info(
@@ -55,7 +62,7 @@ class RawWriter:
             )
             return None
 
-        path = self._path(source, stream, ingested_at, run_id, digest)
+        path = self._path(self._root, source, stream, ingested_at, run_id, request_key, digest)
         _write_atomic(path, _with_metadata(table, ingested_at, request_key))
         entry = RawFileEntry(
             path=path.relative_to(self._root).as_posix(),
@@ -71,30 +78,46 @@ class RawWriter:
         return entry
 
     def quarantine(
-        self, source: str, stream: str, table: pa.Table, *, run_id: str, ingested_at: datetime
+        self,
+        source: str,
+        stream: str,
+        table: pa.Table,
+        *,
+        run_id: str,
+        request_key: str,
+        ingested_at: datetime,
     ) -> Path:
         """Keep a batch that failed hard quality checks for inspection, outside the raw layer."""
-        path = self._path(source, stream, ingested_at, run_id, content_hash(table), "_quarantine")
+        path = self._path(
+            self._quarantine_root,
+            source,
+            stream,
+            ingested_at,
+            run_id,
+            request_key,
+            content_hash(table),
+        )
         _write_atomic(path, table)
         return path
 
+    @staticmethod
     def _path(
-        self,
+        root: Path,
         source: str,
         stream: str,
         ingested_at: datetime,
         run_id: str,
+        request_key: str,
         digest: str,
-        prefix: str = "",
     ) -> Path:
         ts = ingested_at.astimezone(UTC)
-        base = self._root / prefix if prefix else self._root
+        request = hashlib.sha256(request_key.encode()).hexdigest()[:8]
         return (
-            base
+            root
             / source
             / stream
             / f"ingest_date={ts:%Y-%m-%d}"
-            / f"{ts:%H%M%S}_{run_id[:8]}_{digest[:12]}.parquet"
+            / f"{ts:%H%M%S}_{run_id[:8]}_{request}_{digest[:12]}.parquet"
         )
 
 

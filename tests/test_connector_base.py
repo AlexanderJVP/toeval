@@ -210,7 +210,8 @@ def test_duplicate_natural_keys_fail_the_quality_gate_and_are_quarantined(
     assert not result.succeeded
     assert "duplicate natural keys" in (result.error or "")
     assert store.raw_files("series", "hourly") == []
-    assert list((settings.raw_path / "_quarantine").rglob("*.parquet"))
+    assert list(settings.quarantine_path.rglob("*.parquet"))
+    assert not list(settings.raw_path.rglob("*.parquet"))  # staging must never see it
 
 
 # -- live snapshots ------------------------------------------------------------------------------
@@ -285,3 +286,67 @@ def test_period_stream_tracks_reference_period_and_uses_last_modified(
     assert second.stats.not_modified == 1
     assert second.watermark_after == Watermark.period("2026-09")
     assert server.requests[-1].headers["If-Modified-Since"] == server.last_modified
+
+
+# -- regressions from docs/repo-analysis-2026-10-18.md -------------------------------------------
+
+
+def test_identical_batches_within_one_run_do_not_collide(
+    settings: Settings, store: StateStore
+) -> None:
+    server = LiveServer()
+    server.publish("Antwerpen-Centraal", [])  # both boards empty -> identical content
+    server.publish("Berchem", [])
+    clock = FakeClock(datetime(2026, 10, 18, 6, tzinfo=UTC))
+
+    result = make_live(settings, store, server, clock).run("departures")
+
+    assert result.succeeded, result.error
+
+
+def test_failure_before_the_first_request_is_recorded_as_failed(
+    settings: Settings, store: StateStore, series_server: SeriesServer
+) -> None:
+    from toeval.connectors.spec import ApiKeyAuth
+
+    spec = FakeSeriesConnector.spec.model_copy(
+        update={"auth": ApiKeyAuth(env_var="TOEVAL_TEST_MISSING_KEY", header="X-Api-Key")}
+    )
+    connector = FakeSeriesConnector(
+        settings,
+        store,
+        spec=spec,
+        transport=series_server.transport(),
+        clock=FakeClock(datetime(2026, 1, 20, tzinfo=UTC)),
+        http_options={**NO_SLEEP, "environ": {}},
+    )
+
+    result = connector.run("hourly")
+
+    assert not result.succeeded
+    assert "TOEVAL_TEST_MISSING_KEY" in (result.error or "")
+    assert store.get_run(result.run_id)["status"] == "failed"
+    assert series_server.requests == []
+
+
+def test_interrupt_marks_the_run_failed_and_propagates(
+    settings: Settings, store: StateStore, series_server: SeriesServer
+) -> None:
+    def interrupted(request):  # type: ignore[no-untyped-def]
+        raise KeyboardInterrupt
+
+    import httpx
+
+    connector = FakeSeriesConnector(
+        settings,
+        store,
+        transport=httpx.MockTransport(interrupted),
+        clock=FakeClock(datetime(2026, 1, 20, tzinfo=UTC)),
+        http_options=NO_SLEEP,
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        connector.run("hourly")
+
+    statuses = store._con.execute("SELECT status FROM runs").fetchall()
+    assert statuses == [("failed",)]
