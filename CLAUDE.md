@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is in progress. The original brief is `claude-code-kickoff-prompt.md`. **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 hasn't started; plan it with the owner first. The original brief is `claude-code-kickoff-prompt.md`. **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
 ## Commands
 
@@ -41,7 +41,7 @@ A personal portfolio data platform (owner: applied informatics / AI-ML student i
 
 ## Phases
 
-1. **Foundation + Elia** (current): tooling, connector interface, Elia connector (backfill + incremental), raw → staging → one mart, quality checks, tests, Task Scheduler job, README.
+1. **Foundation + Elia** (done): tooling, connector interface, Elia connector (backfill + incremental), raw → staging → one mart, quality checks, tests, Task Scheduler job, README.
 2. More sources: Open-Meteo, iRail, Telraam (API token), IRCEL-CELINE, Antwerp/Statbel. Aligned time grains in marts.
 3. Correlation tracker (weekly job, static report or small dashboard).
 4. JEPA + baselines, results in README.
