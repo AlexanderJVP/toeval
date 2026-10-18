@@ -2,9 +2,12 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
+import duckdb
 import pytest
 
 from toeval.state import (
+    MIGRATIONS,
+    SCHEMA_VERSION,
     RawFileEntry,
     RunStats,
     StateStore,
@@ -141,3 +144,58 @@ def test_files_from_the_current_run_do_not_block_dedup(store: StateStore) -> Non
     store.add_raw_file(_file("b", "run2", "K2", T0 + timedelta(hours=1), "B"))
 
     assert store.is_unchanged("src", "s", "K1", "A", current_run="run2")
+
+
+# -- migrations and orphans ------------------------------------------------------------------
+
+
+def test_database_from_before_versioning_is_migrated(tmp_path: Path) -> None:
+    path = tmp_path / "state.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(MIGRATIONS[0][2])  # the b3350b1 schema: no failure columns, no version table
+    con.execute(
+        "INSERT INTO stream_state (source, stream, watermark_kind, watermark_value)"
+        " VALUES ('elia', 'load', 'timestamp', '2026-10-18T08:00:00+00:00')"
+    )
+    con.close()
+
+    with StateStore(path) as store:
+        state = store.get_stream_state("elia", "load")
+        assert store.schema_version() == SCHEMA_VERSION
+        assert state.watermark == Watermark.timestamp(datetime(2026, 10, 18, 8, tzinfo=UTC))
+        assert (state.consecutive_failures, state.last_failure_at) == (0, None)
+        assert store.transform_status().last_attempt_at is None
+
+    with StateStore(path) as store:  # reopening is a no-op
+        assert store.schema_version() == SCHEMA_VERSION
+
+
+def test_database_newer_than_the_code_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "state.duckdb"
+    with StateStore(path):
+        pass
+    con = duckdb.connect(str(path))
+    con.execute("UPDATE schema_version SET version = version + 1")
+    con.close()
+
+    with pytest.raises(RuntimeError, match="newer than this code"):
+        StateStore(path)
+
+
+def test_orphaned_runs_and_transforms_are_marked_failed(store: StateStore) -> None:
+    incremental = store.start_run("src", "stream", "incremental", T0)
+    backfill = store.start_run("src", "other", "backfill", T0)
+    transform = store.start_transform(T0)
+    later = T0 + timedelta(hours=3)
+
+    assert store.abort_orphaned(later) == 3
+
+    for run_id in (incremental, backfill):
+        run = store.get_run(run_id)
+        assert run["status"] == "failed"
+        assert "killed" in str(run["error"])
+    assert store.transform_status().last_status == "failed"
+    assert store.get_stream_state("src", "stream").consecutive_failures == 1  # counts
+    assert store.get_stream_state("src", "other").consecutive_failures == 0  # backfill doesn't
+    assert store.abort_orphaned(later) == 0
+    assert transform

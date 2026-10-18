@@ -15,6 +15,6 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked
-      - run: uv run ruff check .
-      - run: uv run ruff format --check .
+      # All hooks, incl. ruff check/format and the YAML/TOML/whitespace/private-key checks.
+      - run: uv run pre-commit run --all-files --show-diff-on-failure
       - run: uv run pytest

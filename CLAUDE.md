@@ -55,7 +55,7 @@ Do not scaffold folders or code for later phases ahead of time.
 - **0002 (amended by 0004):** Incremental fetch range = `watermark − revision_window` (floored to a day grid) → `now + forecast horizon`, so missed runs (laptop off) catch up automatically and still re-check the window before the old watermark. The window is 14 days by default plus a monthly 90-day deep re-fetch. Both are provisional: every run will log `revision_lag`, the age of the oldest changed row (not built yet; needs staging). The watermark is the latest *measured* (non-null) timestamp and advances only after the raw writes and quality checks of **all** requests succeed. It does not wait for staging, which is a separate step.
 - **0003:** Elia hierarchy. Solar (`ods032`) has a `region='Belgium'` total plus regions and provinces, so **never sum all rows**. Wind (`ods031`) has 5 disjoint parts with no total, so sum them and track `parts_present`. Load (`ods001`) is one national series.
 - **0004 (connector interface):** see the next section. Empty batches aren't written, so rows a source *withdraws* stay in raw and staging (known limitation).
-- **0005 (scheduled operation):** one Task Scheduler entry runs `toeval run-due` every 5 min via `.venv\Scripts\pythonw.exe -m toeval` (no console window). A stream is due when its schedule says so **and** the retry backoff after failed incremental runs has passed (5 min doubling to 6 h; `consecutive_failures` / `last_failure_at` in `stream_state`). Backfills don't touch `last_success_at` or the failure count. The rate limit is per stream run, not yet per source (deferred to iRail).
+- **0005 (scheduled operation):** one Task Scheduler entry runs `toeval run-due` every 5 min via `.venv\Scripts\pythonw.exe -m toeval` (no console window). A stream is due when its schedule says so **and** the retry backoff after failed incremental runs has passed (5 min doubling to 6 h; `consecutive_failures` / `last_failure_at` in `stream_state`). Backfills don't touch `last_success_at` or the failure count. The lock holder's PID is checked, so a killed run's lock is taken over at once, and its `running` rows are marked failed (`StateStore.abort_orphaned`). A failed transform is recorded in `transforms` and retried with the same backoff while the warehouse is behind raw (`Pipeline.needs_transform`). The rate limit is per stream run, not yet per source (deferred to iRail).
 - **0006 (staging, marts, quality):** see the warehouse section. Amends 0002: `revision_lag` is computed from successive raw versions, not per run.
 
 ## Connector architecture (`src/toeval/connectors/`, ADR 0004)
@@ -74,11 +74,11 @@ The interface must fit three source shapes without special cases: queryable hist
 
 ## Warehouse (`src/toeval/warehouse/`, ADR 0006)
 
-- `transform.py` rebuilds everything from raw on every run (~9 s on all of Elia). It runs the SQL in `sql/staging/`, `sql/marts/` and `sql/quality/` in an in-memory DuckDB, `SET TimeZone = 'UTC'`, and writes one Parquet file per model, replaced atomically: `data/staging/stg_elia_{load,wind,solar}.parquet`, `data/marts/mart_energy_{15min,hourly}.parquet`. Models and checks are listed in `MODELS` / `checks()`.
+- `transform.py` rebuilds everything from raw on every run (~9 s on all of Elia). It runs the SQL in `sql/staging/`, `sql/marts/` and `sql/quality/` in an in-memory DuckDB, `SET TimeZone = 'UTC'`, and writes one Parquet file per model; all are swapped in only after every model and check succeeded (a failure keeps every old output): `data/staging/stg_elia_{load,wind,solar}.parquet`, `data/marts/mart_energy_{15min,hourly}.parquet`. Models and checks are listed in `MODELS` / `checks()`.
 - SQL files reference only views (`raw_<source>_<stream>`, `stg_*`, `mart_*`); Python binds paths. Raw views read only `raw/` (never quarantine), with `filename = true, union_by_name = true`.
 - Staging = latest `_ingested_at` per natural key (`QUALIFY row_number()`), renamed columns with units, `interval_start_utc` as `TIMESTAMPTZ`.
 - Marts: gap-free 15-min grid (missing data = NULL row). Solar = `Belgium` row only. Wind = sum of the 5 parts, NULL unless all 5 are present (`wind_parts_present`). Hourly = mean of 4 quarters, NULL unless all 4 are present (`*_quarters`). Keys are UTC; `*_local` (Brussels) repeats in the fall-back hour. No imputation.
-- Quality checks **warn, never fail**. Each returns `subject, value, details`; the threshold is `Check.max_ok` in Python. Results go to the log, `toeval status` and `quality_results` in the state DB. `measured_holes` only warns on the last 30 days; known historical holes are listed in ADR 0006.
+- Quality checks **warn, never fail**. Each returns `subject, value, details`; the threshold is `Check.max_ok` in Python. Results go to the log, `toeval status` and `quality_results` in the state DB. `measured_holes` and `revision_lag` only warn on the last 30 days; known historical holes are listed in ADR 0006.
 - Tests (`tests/test_transform.py`) build raw files with the recorded fixtures' exact schemas and write them through `RawWriter`.
 
 ## Elia API facts (verified 2026-10-18)
@@ -100,6 +100,7 @@ Implemented in `src/toeval/connectors/elia.py`: source `elia`, streams `load` (o
 
 - Type hints everywhere; ruff (config in `pyproject.toml`); pytest; pre-commit (ruff runs via `uv run` so its version matches the lock file); standard `logging`.
 - Config via `.env` with the `TOEVAL_` prefix (template: `.env.example`); never commit `.env`.
+- State DB schema changes: **append** a step to `MIGRATIONS` in `state.py` (idempotent SQL; DuckDB can't add a column with constraints, so use `DEFAULT` only), never edit a released step. The scheduled task runs the working copy, so the real `data/state/state.duckdb` is migrated on its next tick: rehearse on a copy first.
 - Tests never hit the network unless they're marked `@pytest.mark.live`; use recorded fixtures with `httpx.MockTransport`.
 - One file per significant decision in `docs/decisions/NNNN-title.md`, including the why.
 - Verify data source endpoints, terms and rate limits yourself rather than trusting the brief.

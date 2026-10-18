@@ -362,7 +362,7 @@ def test_revision_lag_measures_how_old_values_were_when_they_changed(
 
     q = quality(result, "revision_lag", "elia/load")
     assert q.value == pytest.approx(5.0)  # the first quarter-hour was 5 days old
-    assert "96 revised values" in q.details
+    assert "96 revised in the last 30 days" in q.details
     assert not q.ok  # 5 days > 80% of a 4-day window
     assert quality(result, "revision_lag", "elia/wind").value == 0
 
@@ -415,3 +415,46 @@ def test_outputs_missing_only_counts_buildable_models(
     run(settings, store, DAY0)
 
     assert not outputs_missing(settings)  # marts can't be built without wind and solar
+
+
+def test_an_old_revision_stops_warning_after_30_days(
+    settings: Settings, store: StateStore, raw: Raw
+) -> None:
+    day1 = DAY0 + timedelta(days=1)
+    raw.all_streams(DAY0, day1, constant(100.0), at=day1)
+    raw.write("load", load_rows(DAY0, day1, constant(101.0)), at=day1 + timedelta(days=20), key="x")
+
+    later = day1 + timedelta(days=60)
+    q = quality(run(settings, store, later, revision_window=timedelta(days=14)), "revision_lag",
+                "elia/load")  # fmt: skip
+
+    assert q.ok
+    assert q.value == 0
+    assert "all history: 96, max 21.0 days" in q.details
+
+
+def test_failed_swap_keeps_all_old_outputs_and_records_the_failure(
+    settings: Settings,
+    store: StateStore,
+    raw: Raw,
+    con: duckdb.DuckDBPyConnection,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    day1 = DAY0 + timedelta(days=1)
+    raw.all_streams(DAY0, day1, constant(1.0), at=day1)
+    run(settings, store, day1)
+    raw.write("load", load_rows(DAY0, day1, constant(2.0)), at=day1 + timedelta(hours=1), key="new")
+
+    def locked(src: object, dst: object) -> None:
+        raise PermissionError(f"[WinError 32] file in use: {dst}")
+
+    monkeypatch.setattr("toeval.warehouse.transform.os.replace", locked)
+    with pytest.raises(PermissionError):
+        run(settings, store, day1 + timedelta(hours=1))
+
+    status = store.transform_status()
+    assert (status.last_status, status.consecutive_failures) == ("failed", 1)
+    assert "WinError 32" in (status.last_error or "")
+    assert status.last_success_started_at == day1
+    assert query(con, settings, "stg_elia_load", "SELECT DISTINCT load_mw FROM {model}") == [(1.0,)]
+    assert not list(settings.data_path.rglob("*.tmp"))

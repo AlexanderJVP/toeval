@@ -101,55 +101,105 @@ class QualityResult:
         return f"{status}, {value}" + (f" ({self.details})" if self.details else "")
 
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS stream_state (
-    source VARCHAR NOT NULL,
-    stream VARCHAR NOT NULL,
-    watermark_kind VARCHAR,
-    watermark_value VARCHAR,
-    last_success_at TIMESTAMP,
-    last_deep_refetch_at TIMESTAMP,
-    http_validators JSON,
-    consecutive_failures INTEGER NOT NULL DEFAULT 0,
-    last_failure_at TIMESTAMP,
-    PRIMARY KEY (source, stream)
-);
-CREATE TABLE IF NOT EXISTS runs (
-    run_id VARCHAR PRIMARY KEY,
-    source VARCHAR NOT NULL,
-    stream VARCHAR NOT NULL,
-    mode VARCHAR NOT NULL,
-    started_at TIMESTAMP NOT NULL,
-    finished_at TIMESTAMP,
-    status VARCHAR NOT NULL,  -- running | success | failed
-    requests INTEGER,
-    not_modified INTEGER,
-    rows_fetched BIGINT,
-    files_written INTEGER,
-    watermark_before VARCHAR,
-    watermark_after VARCHAR,
-    error VARCHAR
-);
-CREATE TABLE IF NOT EXISTS raw_files (
-    path VARCHAR PRIMARY KEY,
-    source VARCHAR NOT NULL,
-    stream VARCHAR NOT NULL,
-    run_id VARCHAR NOT NULL,
-    request_key VARCHAR NOT NULL,
-    ingested_at TIMESTAMP NOT NULL,
-    content_hash VARCHAR NOT NULL,
-    row_count BIGINT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS quality_results (
-    checked_at TIMESTAMP NOT NULL,
-    check_name VARCHAR NOT NULL,
-    subject VARCHAR NOT NULL,
-    value DOUBLE,
-    unit VARCHAR NOT NULL,
-    ok BOOLEAN NOT NULL,
-    details VARCHAR NOT NULL
-);
-"""
+# Ordered schema migrations. Each runs once, in a transaction, and bumps `schema_version`.
+# Never edit a released step; append a new one. Steps are idempotent (IF NOT EXISTS) because
+# databases created before versioning existed already contain some of them.
+MIGRATIONS: tuple[tuple[int, str, str], ...] = (
+    (
+        1,
+        "baseline: stream state, run log, raw manifest",
+        """
+        CREATE TABLE IF NOT EXISTS stream_state (
+            source VARCHAR NOT NULL,
+            stream VARCHAR NOT NULL,
+            watermark_kind VARCHAR,
+            watermark_value VARCHAR,
+            last_success_at TIMESTAMP,
+            last_deep_refetch_at TIMESTAMP,
+            http_validators JSON,
+            PRIMARY KEY (source, stream)
+        );
+        CREATE TABLE IF NOT EXISTS runs (
+            run_id VARCHAR PRIMARY KEY,
+            source VARCHAR NOT NULL,
+            stream VARCHAR NOT NULL,
+            mode VARCHAR NOT NULL,
+            started_at TIMESTAMP NOT NULL,
+            finished_at TIMESTAMP,
+            status VARCHAR NOT NULL,  -- running | success | failed
+            requests INTEGER,
+            not_modified INTEGER,
+            rows_fetched BIGINT,
+            files_written INTEGER,
+            watermark_before VARCHAR,
+            watermark_after VARCHAR,
+            error VARCHAR
+        );
+        CREATE TABLE IF NOT EXISTS raw_files (
+            path VARCHAR PRIMARY KEY,
+            source VARCHAR NOT NULL,
+            stream VARCHAR NOT NULL,
+            run_id VARCHAR NOT NULL,
+            request_key VARCHAR NOT NULL,
+            ingested_at TIMESTAMP NOT NULL,
+            content_hash VARCHAR NOT NULL,
+            row_count BIGINT NOT NULL
+        );
+        """,
+    ),
+    (
+        2,
+        "retry backoff (ADR 0005)",
+        """
+        ALTER TABLE stream_state ADD COLUMN IF NOT EXISTS consecutive_failures INTEGER DEFAULT 0;
+        ALTER TABLE stream_state ADD COLUMN IF NOT EXISTS last_failure_at TIMESTAMP;
+        """,
+    ),
+    (
+        3,
+        "quality results (ADR 0006)",
+        """
+        CREATE TABLE IF NOT EXISTS quality_results (
+            checked_at TIMESTAMP NOT NULL,
+            check_name VARCHAR NOT NULL,
+            subject VARCHAR NOT NULL,
+            value DOUBLE,
+            unit VARCHAR NOT NULL,
+            ok BOOLEAN NOT NULL,
+            details VARCHAR NOT NULL
+        );
+        """,
+    ),
+    (
+        4,
+        "transform log",
+        """
+        CREATE TABLE IF NOT EXISTS transforms (
+            transform_id VARCHAR PRIMARY KEY,
+            started_at TIMESTAMP NOT NULL,
+            finished_at TIMESTAMP,
+            status VARCHAR NOT NULL,  -- running | success | failed
+            models_built INTEGER,
+            error VARCHAR
+        );
+        """,
+    ),
+)
+SCHEMA_VERSION = MIGRATIONS[-1][0]
+
+# A run or transform still marked 'running' when a new process holds the lock was killed
+# (power loss, Task Scheduler's time limit) before it could record its end.
+ORPHANED = "process ended without recording a result (killed, crashed or power loss)"
+
+
+@dataclass(frozen=True)
+class TransformStatus:
+    last_success_started_at: datetime | None
+    last_attempt_at: datetime | None
+    last_status: str | None
+    last_error: str | None
+    consecutive_failures: int  # failed transforms since the last successful one
+    last_failure_at: datetime | None
 
 
 def _to_db(ts: datetime | None) -> datetime | None:
@@ -181,7 +231,35 @@ class StateStore:
             return
         path.parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(str(path))
-        self._con.execute(SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        self._con.execute("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)")
+        current = self.schema_version()
+        if current > SCHEMA_VERSION:
+            raise RuntimeError(
+                f"state DB has schema version {current}, newer than this code ({SCHEMA_VERSION})"
+            )
+        for version, _description, sql in MIGRATIONS:
+            if version <= current:
+                continue
+            self._con.execute("BEGIN TRANSACTION")
+            try:
+                self._con.execute(sql)
+                self._con.execute("DELETE FROM schema_version")
+                self._con.execute("INSERT INTO schema_version VALUES (?)", [version])
+                self._con.execute("COMMIT")
+            except BaseException:
+                self._con.execute("ROLLBACK")
+                raise
+
+    def schema_version(self) -> int:
+        """0 for a database from before versioning (or a read-only one never migrated)."""
+        try:
+            row = self._con.execute("SELECT max(version) FROM schema_version").fetchone()
+        except duckdb.CatalogException:
+            return 0
+        return int(row[0]) if row and row[0] is not None else 0
 
     def close(self) -> None:
         self._con.close()
@@ -216,7 +294,7 @@ class StateStore:
             last_success_at=_from_db(last_success),
             last_deep_refetch_at=_from_db(last_deep),
             http_validators=json.loads(validators) if validators else {},
-            consecutive_failures=failures,
+            consecutive_failures=failures or 0,
             last_failure_at=_from_db(last_failure),
         )
 
@@ -278,18 +356,22 @@ class StateStore:
         self._con.execute("BEGIN TRANSACTION")
         try:
             self._finish(run_id, "failed", stats, finished_at, watermark_before, None, error)
-            self._con.execute(
-                "INSERT INTO stream_state (source, stream, consecutive_failures, last_failure_at)"
-                " SELECT source, stream, 1, ? FROM runs WHERE run_id = ? AND mode = 'incremental'"
-                " ON CONFLICT (source, stream) DO UPDATE SET"
-                " consecutive_failures = stream_state.consecutive_failures + 1,"
-                " last_failure_at = excluded.last_failure_at",
-                [_to_db(finished_at), run_id],
-            )
+            self._count_failure(run_id, finished_at)
             self._con.execute("COMMIT")
         except BaseException:
             self._con.execute("ROLLBACK")
             raise
+
+    def _count_failure(self, run_id: str, failed_at: datetime) -> None:
+        """Count a failed *incremental* run towards its stream's retry backoff."""
+        self._con.execute(
+            "INSERT INTO stream_state (source, stream, consecutive_failures, last_failure_at)"
+            " SELECT source, stream, 1, ? FROM runs WHERE run_id = ? AND mode = 'incremental'"
+            " ON CONFLICT (source, stream) DO UPDATE SET"
+            " consecutive_failures = coalesce(stream_state.consecutive_failures, 0) + 1,"
+            " last_failure_at = excluded.last_failure_at",
+            [_to_db(failed_at), run_id],
+        )
 
     def _finish(
         self,
@@ -369,6 +451,93 @@ class StateStore:
                 entry.row_count,
             ],
         )
+
+    def abort_orphaned(self, now: datetime) -> int:
+        """Mark runs and transforms left 'running' by a killed process as failed.
+
+        Only call this while holding the ingest lock: then nothing else can be running. An
+        orphaned incremental run counts towards the stream's retry backoff like any failure.
+        """
+        orphans = [
+            r[0]
+            for r in self._con.execute(
+                "SELECT run_id FROM runs WHERE status = 'running'"
+            ).fetchall()
+        ]
+        (transforms,) = self._con.execute(
+            "SELECT count(*) FROM transforms WHERE status = 'running'"
+        ).fetchone()  # type: ignore[misc]
+        self._con.execute("BEGIN TRANSACTION")
+        try:
+            for run_id in orphans:
+                self._count_failure(run_id, now)
+            for table in ("runs", "transforms"):
+                self._con.execute(
+                    f"UPDATE {table} SET status = 'failed', finished_at = ?, error = ?"
+                    " WHERE status = 'running'",
+                    [_to_db(now), ORPHANED],
+                )
+            self._con.execute("COMMIT")
+        except BaseException:
+            self._con.execute("ROLLBACK")
+            raise
+        return len(orphans) + int(transforms)
+
+    # -- transforms -------------------------------------------------------------------------------
+
+    def start_transform(self, started_at: datetime) -> str:
+        transform_id = uuid.uuid4().hex
+        self._con.execute(
+            "INSERT INTO transforms (transform_id, started_at, status) VALUES (?, ?, 'running')",
+            [transform_id, _to_db(started_at)],
+        )
+        return transform_id
+
+    def finish_transform(
+        self,
+        transform_id: str,
+        finished_at: datetime,
+        *,
+        models_built: int,
+        error: str | None = None,
+    ) -> None:
+        self._con.execute(
+            "UPDATE transforms SET finished_at = ?, status = ?, models_built = ?, error = ?"
+            " WHERE transform_id = ?",
+            [
+                _to_db(finished_at),
+                "failed" if error else "success",
+                models_built,
+                error,
+                transform_id,
+            ],
+        )
+
+    def transform_status(self) -> TransformStatus:
+        (success_at,) = self._con.execute(
+            "SELECT max(started_at) FROM transforms WHERE status = 'success'"
+        ).fetchone()  # type: ignore[misc]
+        last = self._con.execute(
+            "SELECT started_at, status, error FROM transforms"
+            " WHERE status <> 'running' ORDER BY started_at DESC LIMIT 1"
+        ).fetchone()
+        failures, last_failure = self._con.execute(
+            "SELECT count(*), max(finished_at) FROM transforms"
+            " WHERE status = 'failed' AND (?::TIMESTAMP IS NULL OR started_at > ?::TIMESTAMP)",
+            [success_at, success_at],
+        ).fetchone()  # type: ignore[misc]
+        return TransformStatus(
+            last_success_started_at=_from_db(success_at),
+            last_attempt_at=_from_db(last[0]) if last else None,
+            last_status=last[1] if last else None,
+            last_error=last[2] if last else None,
+            consecutive_failures=int(failures),
+            last_failure_at=_from_db(last_failure),
+        )
+
+    def latest_raw_ingest(self) -> datetime | None:
+        (latest,) = self._con.execute("SELECT max(ingested_at) FROM raw_files").fetchone()  # type: ignore[misc]
+        return _from_db(latest)
 
     # -- quality ----------------------------------------------------------------------------------
 

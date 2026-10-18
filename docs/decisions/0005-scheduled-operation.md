@@ -16,6 +16,8 @@ Due-ness was defined only by the last *success*. A failing stream therefore stay
 - **Lock contention is normal for `run-due`**: if the previous run is still busy, it logs and exits 0. `ingest` and `backfill` exit 3 instead, because a person is waiting for them.
 - **Exit codes:** 0 ok, 1 a stream failed, 2 usage error, 3 lock held.
 - **Task Scheduler** (`scripts/scheduled-task.ps1`): runs as the logged-on user (no stored password), via `.venv\Scripts\pythonw.exe -m toeval run-due` so no console window flashes every 5 minutes, with `StartWhenAvailable` (missed starts run on wake-up), `MultipleInstances IgnoreNew` and a 2 h execution limit. Output goes to `data/logs/toeval.log`; `toeval status` shows each stream.
+- **Killed processes are cleaned up.** The lock file records its holder's PID; a lock whose process no longer exists (Task Scheduler's 2 h limit, a crash, power loss) is taken over at once, and the 6 h age limit is only a fallback. Whoever takes the lock then marks runs and transforms still recorded as `running` as failed; an orphaned incremental run counts towards the backoff.
+- **A failed transform is retried** whenever the warehouse is behind raw (an output is missing, or raw changed since the last *successful* transform), with the same 5 min → 6 h backoff. Every attempt is recorded in the `transforms` table, and `status` shows failures since the last success.
 - **`status` reads the state DB read-only.** DuckDB allows one writing process, so while a run is busy `status` says so (exit 3) instead of crashing.
 
 ## Consequences

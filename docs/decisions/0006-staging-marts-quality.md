@@ -14,7 +14,7 @@ Measured on the real data on 2026-10-19 (5.4 M raw rows): a full rebuild of all 
 
 ### Full rebuild, not incremental
 
-`toeval transform` (and `run-due` / `ingest` after anything was written) rebuilds every model from raw (`src/toeval/warehouse/transform.py`). At 9 s, incremental merge logic would cost more complexity than it saves. Each model runs as `COPY (<sql>) TO <tmp>` in an in-memory DuckDB and replaces its single Parquet file atomically: `data/staging/stg_*.parquet`, `data/marts/mart_*.parquet`.
+`toeval transform` (and `run-due` / `ingest` after anything was written) rebuilds every model from raw (`src/toeval/warehouse/transform.py`). At 9 s, incremental merge logic would cost more complexity than it saves. Each model runs as `COPY (<sql>) TO <tmp>` in an in-memory DuckDB, downstream models read the temporary files, and only when every model and check succeeded are all files swapped in: `data/staging/stg_*.parquet`, `data/marts/mart_*.parquet`. A failure leaves all previous outputs in place, never fresh staging next to stale marts. Every attempt is recorded in the state DB's `transforms` table, and a failed one is retried with backoff (ADR 0005).
 
 SQL files reference only view names: `raw_<source>_<stream>` (every file under `raw/<source>/<stream>/`, never quarantine), `stg_*` and `mart_*`. Paths are bound in Python. A model whose inputs were never ingested is skipped. `run-due` transforms only when raw changed, or when a buildable model has no output yet.
 
@@ -40,9 +40,9 @@ Hard checks already ran at ingestion (ADR 0004), and what remains is what the so
 | `measured_holes` | NULL measured values in the **last 30 days** of each national series' measured range | > 0 |
 | `wind_parts` | quarter-hours with 1–4 or more than 5 wind parts | > 0 |
 | `freshness` | hours since the last measured quarter-hour | > 72 |
-| `revision_lag` | age in days of the oldest value Elia changed, when it changed | > 80% of the revision window |
+| `revision_lag` | age in days of the oldest value Elia changed in the **last 30 days**, when it changed | > 80% of the revision window |
 
-`measured_holes` only warns on recent holes. Old ones are fixed properties of the source; reporting them forever would teach everyone to ignore warnings. They are counted in the details and documented below.
+`measured_holes` and `revision_lag` only warn on recent events. Old ones are fixed history; reporting them forever would teach everyone to ignore warnings. They are counted in the details, and the known holes are documented below.
 
 ### `revision_lag` comes from raw (amends 0002 §3)
 
@@ -58,5 +58,5 @@ Hard checks already ran at ingestion (ADR 0004), and what remains is what the so
 ## Consequences
 
 - Downstream code reads one Parquet file per model and never sees raw versions or the Elia hierarchy.
-- On Windows, a process that keeps a staging or mart file open (e.g. an interactive DuckDB session holding it) makes the atomic replace fail. The transform then fails, is logged, and `run-due` exits 1; the next run that writes raw retries it. Open the files only for the duration of a query.
+- On Windows, a process that keeps a staging or mart file open (e.g. an interactive DuckDB session holding it) makes the swap fail. The transform then fails without changing any output, is recorded and shown by `status`, and is retried with backoff. Open the files only for the duration of a query.
 - Rebuild time grows with raw. At about 1 GB of raw (years more data, or Phase 2 sources) it's worth measuring again before considering incremental models.

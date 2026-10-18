@@ -6,7 +6,7 @@ Exit codes: 0 ok, 1 at least one stream run failed, 2 usage error, 3 another run
 import logging
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 import duckdb
@@ -19,7 +19,7 @@ from toeval.connectors.spec import BRUSSELS
 from toeval.lock import FileLock, LockHeldError
 from toeval.log import setup_logging
 from toeval.pipeline import Pipeline
-from toeval.state import StateStore
+from toeval.state import SCHEMA_VERSION, StateStore
 
 log = logging.getLogger(__name__)
 
@@ -100,6 +100,12 @@ def status() -> None:
         typer.echo("An ingest run is in progress (state DB is locked); try again later.")
         raise typer.Exit(EXIT_LOCKED) from None
     with store:
+        if (version := store.schema_version()) < SCHEMA_VERSION:
+            typer.echo(
+                f"The state DB has schema version {version}; this code expects {SCHEMA_VERSION}. "
+                "The next run (scheduled, or `toeval run-due`) upgrades it."
+            )
+            return
         for s in Pipeline(settings, store).status():
             wm = s.state.watermark.serialize() if s.state.watermark else "-"
             failures = (
@@ -111,6 +117,15 @@ def status() -> None:
                 f"{s.source}/{s.stream}: watermark {wm}, last success "
                 f"{_fmt(s.state.last_success_at)}{failures}, next due {_fmt(s.next_due) or 'now'}"
             )
+        t = store.transform_status()
+        if t.last_attempt_at is not None:
+            line = f"transform: last success {_fmt(t.last_success_started_at) or 'never'}"
+            if t.consecutive_failures:
+                line += (
+                    f"; {t.consecutive_failures} failed attempt(s) since, last at "
+                    f"{_fmt(t.last_failure_at)}: {t.last_error}"
+                )
+            typer.echo(line)
         quality = store.latest_quality_results()
         if quality:
             warnings = [q for q in quality if not q.ok]
@@ -146,6 +161,9 @@ def _pipeline(*, busy_ok: bool = False) -> Iterator[Pipeline]:
         raise typer.Exit(EXIT_LOCKED) from None
     try:
         with StateStore(settings.state_db_path) as store:
+            # Holding the lock means nothing else runs: anything still 'running' was killed.
+            if aborted := store.abort_orphaned(datetime.now(UTC)):
+                log.warning("marked %d run(s)/transform(s) of a killed process as failed", aborted)
             try:
                 yield Pipeline(settings, store)
             except (KeyError, ValueError) as exc:  # unknown source/stream, bad sources.toml

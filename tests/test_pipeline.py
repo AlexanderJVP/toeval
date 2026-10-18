@@ -181,3 +181,34 @@ def test_unknown_stream_fails_before_anything_runs(
     with pytest.raises(KeyError, match="nope"):
         pipeline.run("series", ["hourly", "nope"])
     assert servers.series.requests == []
+
+
+# -- transform retries ---------------------------------------------------------------------------
+
+
+def test_failed_transform_is_retried_with_backoff_until_it_succeeds(
+    settings: Settings, store: StateStore, servers: Servers
+) -> None:
+    clock = FakeClock(NOW)
+    pipeline = make(settings, store, servers, clock)
+    pipeline.run_due()  # writes raw
+    failed = store.start_transform(clock())
+    store.finish_transform(failed, clock(), models_built=0, error="PermissionError: in use")
+
+    assert not pipeline.needs_transform([])  # behind, but backing off for 5 minutes
+    clock.advance(timedelta(minutes=5))
+    assert pipeline.needs_transform([])
+    pipeline.transform()
+    assert not pipeline.needs_transform([])  # caught up
+
+
+def test_raw_newer_than_the_last_transform_needs_one(
+    settings: Settings, store: StateStore, servers: Servers
+) -> None:
+    clock = FakeClock(NOW)
+    pipeline = make(settings, store, servers, clock)
+    pipeline.transform()
+    clock.advance(timedelta(minutes=1))
+    pipeline.run_due()  # raw written after the last transform, which then never ran
+
+    assert pipeline.needs_transform([])

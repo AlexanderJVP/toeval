@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import duckdb
 import pytest
 from typer.testing import CliRunner
 
@@ -13,6 +14,7 @@ from toeval.cli import app
 from toeval.config import get_settings
 from toeval.connectors import registry
 from toeval.lock import FileLock
+from toeval.state import MIGRATIONS, StateStore
 
 runner = CliRunner()
 
@@ -160,3 +162,40 @@ def test_transform_command_and_run_due_trigger(data_dir: Path) -> None:
     assert "transform: built nothing" in transform.output  # fake sources have no Elia models
     assert "transform:" in first.output
     assert "transform:" not in second.output
+
+
+def test_taking_the_lock_cleans_up_after_a_killed_run(data_dir: Path) -> None:
+    db = data_dir / "state" / "state.duckdb"
+    with StateStore(db) as store:
+        orphan = store.start_run("series", "hourly", "incremental", datetime.now(UTC))
+
+    result = runner.invoke(app, ["ingest", "series"])
+
+    assert result.exit_code == 0, result.output
+    with StateStore(db) as store:
+        assert store.get_run(orphan)["status"] == "failed"
+
+
+def test_status_shows_a_failed_transform(data_dir: Path) -> None:
+    runner.invoke(app, ["ingest", "series"])
+    with StateStore(data_dir / "state" / "state.duckdb") as store:
+        failed = store.start_transform(datetime.now(UTC))
+        store.finish_transform(failed, datetime.now(UTC), models_built=0, error="boom")
+
+    result = runner.invoke(app, ["status"])
+
+    assert "1 failed attempt(s) since" in result.output
+    assert "boom" in result.output
+
+
+def test_status_on_a_state_db_that_is_not_migrated_yet(data_dir: Path) -> None:
+    db = data_dir / "state" / "state.duckdb"
+    db.parent.mkdir(parents=True)
+    con = duckdb.connect(str(db))
+    con.execute(MIGRATIONS[0][2])
+    con.close()
+
+    result = runner.invoke(app, ["status"])
+
+    assert result.exit_code == 0, result.output
+    assert "next run" in result.output

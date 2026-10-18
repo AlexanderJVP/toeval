@@ -137,8 +137,26 @@ class Pipeline:
         return results
 
     def needs_transform(self, results: Sequence[StreamRunResult]) -> bool:
-        """After ingestion: rebuild when raw changed, or when an output doesn't exist yet."""
-        return any(r.stats.files_written for r in results) or outputs_missing(self._settings)
+        """Rebuild when this run wrote raw files, or when the warehouse is behind raw: an output
+        is missing, or raw changed since the last *successful* transform (e.g. it failed).
+        Retrying a failed transform follows the same backoff as failing streams."""
+        if any(r.stats.files_written for r in results):
+            return True
+        status = self._store.transform_status()
+        latest_raw = self._store.latest_raw_ingest()
+        behind = outputs_missing(self._settings) or (
+            latest_raw is not None
+            and (
+                status.last_success_started_at is None
+                or latest_raw > status.last_success_started_at
+            )
+        )
+        if not behind:
+            return False
+        if status.consecutive_failures and status.last_failure_at is not None:
+            retry_at = status.last_failure_at + retry_delay(status.consecutive_failures)
+            return self._clock() >= retry_at
+        return True
 
     def transform(self) -> TransformResult:
         windows = [

@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -17,10 +18,12 @@ class LockHeldError(RuntimeError):
 
 
 class FileLock:
-    """Exclusive lock file. A lock older than `stale_after` seconds (crashed run) is taken over.
+    """Exclusive lock file, taken over when its holder is gone.
 
-    Takeover is best effort: there is one scheduler entry, so contention is rare. Stale detection
-    re-reads the file before deleting it, and release never deletes someone else's lock.
+    A lock is stale when the process that wrote it no longer exists (killed, power loss), or
+    as a fallback when it is older than `stale_after` seconds. Takeover is best effort: there is
+    one scheduler entry, so contention is rare. Stale detection re-reads the file before deleting
+    it, and release never deletes someone else's lock.
     """
 
     def __init__(self, path: Path, stale_after: float = 6 * 3600) -> None:
@@ -39,7 +42,7 @@ class FileLock:
                 except FileNotFoundError:  # holder released between open() and stat()
                     continue
                 seen = self._read()
-                if age < self._stale_after:
+                if age < self._stale_after and _holder_alive(seen):
                     raise LockHeldError(
                         f"another run holds {self._path} ({seen}); age {age:.0f}s"
                     ) from None
@@ -86,3 +89,36 @@ class FileLock:
         tb: TracebackType | None,
     ) -> None:
         self.release()
+
+
+def _holder_alive(content: str) -> bool:
+    """False only if the lock names a PID that provably no longer runs; unreadable = alive."""
+    try:
+        pid = int(json.loads(content)["pid"])
+    except (ValueError, KeyError, TypeError):
+        return True
+    return pid_alive(pid)
+
+
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        synchronize, wait_timeout = 0x00100000, 0x00000102
+        handle = kernel32.OpenProcess(synchronize, False, pid)
+        if not handle:  # no such process (or no access, which means it does exist)
+            return kernel32.GetLastError() == 5  # ERROR_ACCESS_DENIED
+        try:
+            return kernel32.WaitForSingleObject(handle, 0) == wait_timeout
+        finally:
+            kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True

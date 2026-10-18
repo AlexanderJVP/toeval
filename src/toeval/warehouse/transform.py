@@ -119,18 +119,47 @@ def transform(
     now: datetime,
     revision_window: timedelta = timedelta(days=14),
 ) -> TransformResult:
+    """Rebuild every model, run the checks, and record the attempt in `transforms`.
+
+    All outputs are written to temporary files first and only then swapped in, so a failure
+    (e.g. another program holding a mart file open on Windows) never leaves fresh staging next to
+    stale marts. A failure is recorded and re-raised; `Pipeline.needs_transform` retries it.
+    """
     started = time.monotonic()
+    transform_id = store.start_transform(now)
+    built: list[str] = []
+    try:
+        result = _transform(settings, store, now, revision_window, built)
+    except BaseException as exc:
+        store.finish_transform(
+            transform_id, now, models_built=0, error=f"{type(exc).__name__}: {exc}"
+        )
+        raise
+    store.finish_transform(transform_id, now, models_built=len(built))
+    log.info("transform: done in %.1fs", time.monotonic() - started)
+    return result
+
+
+def _transform(
+    settings: Settings,
+    store: StateStore,
+    now: datetime,
+    revision_window: timedelta,
+    built: list[str],
+) -> TransformResult:
+    staged: list[tuple[Path, Path]] = []  # (tmp, final), swapped in after everything succeeded
     con = duckdb.connect()
     try:
         con.execute("SET TimeZone = 'UTC'")
         available = _register_raw(con, settings)
-        built, skipped = [], []
+        skipped = []
         for model in MODELS:
             if not set(model.inputs) <= available:
                 log.warning("transform: skipping %s (no %s yet)", model.name, model.inputs)
                 skipped.append(model.name)
                 continue
-            rows = _build(con, settings, model)
+            tmp, rows = _build(con, settings, model)
+            staged.append((tmp, _output_path(settings, model)))
             available.add(model.name)
             built.append(model.name)
             log.info("transform: %s: %d rows", model.name, rows)
@@ -140,14 +169,23 @@ def transform(
         for check in checks(revision_window):
             if set(check.inputs) <= available:
                 results.extend(_run_check(con, check, now))
-    finally:
+    except BaseException:
         con.close()
+        for tmp, _ in staged:
+            tmp.unlink(missing_ok=True)
+        raise
+    con.close()  # release the temporary files before moving them
 
+    try:
+        for tmp, final in staged:
+            os.replace(tmp, final)
+    finally:
+        for tmp, _ in staged:
+            tmp.unlink(missing_ok=True)
     store.add_quality_results(results)
     for q in results:
         level = logging.INFO if q.ok else logging.WARNING
         log.log(level, "quality %s %s: %s", q.check, q.subject, q.summary)
-    log.info("transform: done in %.1fs", time.monotonic() - started)
     return TransformResult(tuple(built), tuple(skipped), tuple(results))
 
 
@@ -167,19 +205,19 @@ def _register_raw(con: duckdb.DuckDBPyConnection, settings: Settings) -> set[str
     return available
 
 
-def _build(con: duckdb.DuckDBPyConnection, settings: Settings, model: Model) -> int:
+def _build(con: duckdb.DuckDBPyConnection, settings: Settings, model: Model) -> tuple[Path, int]:
+    """Write the model to a temporary file; downstream models read it from there."""
     path = _output_path(settings, model)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".parquet.tmp")
     query = (SQL / model.sql).read_text(encoding="utf-8")
     con.execute(f"COPY ({query}) TO '{_quote(tmp.as_posix())}' (FORMAT parquet, COMPRESSION zstd)")
-    os.replace(tmp, path)
     con.execute(
         f"CREATE OR REPLACE VIEW {model.name} AS "
-        f"SELECT * FROM read_parquet('{_quote(path.as_posix())}')"
+        f"SELECT * FROM read_parquet('{_quote(tmp.as_posix())}')"
     )
     (rows,) = con.execute(f"SELECT count(*) FROM {model.name}").fetchone()  # type: ignore[misc]
-    return int(rows)
+    return tmp, int(rows)
 
 
 def _run_check(con: duckdb.DuckDBPyConnection, check: Check, now: datetime) -> list[QualityResult]:
