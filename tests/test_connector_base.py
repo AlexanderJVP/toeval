@@ -72,8 +72,8 @@ def test_incremental_run_refetches_the_revision_window_before_the_watermark(
 
     make_series(settings, store, series_server, clock).run("hourly")
 
-    # watermark Jan 20 11:00 minus the 2-day revision window
-    assert requested_starts(series_server)[0] == datetime(2026, 1, 18, 11, tzinfo=UTC)
+    # (watermark Jan 20 11:00 - 2-day revision window), floored to the day grid
+    assert requested_starts(series_server)[0] == datetime(2026, 1, 18, tzinfo=UTC)
 
 
 def test_missed_runs_catch_up_from_the_old_watermark(
@@ -92,7 +92,7 @@ def test_missed_runs_catch_up_from_the_old_watermark(
     result = make_series(settings, store, series_server, clock).run("hourly")
 
     starts = requested_starts(series_server)
-    assert starts[0] == datetime(2026, 1, 18, 11, tzinfo=UTC)  # old watermark - window
+    assert starts[0] == datetime(2026, 1, 18, tzinfo=UTC)  # old watermark - window, floored
     assert len(starts) == 4  # several chunks, no gap
     assert result.watermark_after == Watermark.timestamp(datetime(2026, 2, 10, 11, tzinfo=UTC))
 
@@ -166,8 +166,8 @@ def test_deep_refetch_runs_monthly_and_looks_further_back(
     make_series(settings, store, series_server, clock).run("hourly")
     deep_start = requested_starts(series_server)[0]
 
-    assert normal_start == datetime(2026, 1, 18, 11, tzinfo=UTC)  # 2-day window
-    assert deep_start == datetime(2026, 1, 10, 11, tzinfo=UTC)  # 10-day deep window
+    assert normal_start == datetime(2026, 1, 18, tzinfo=UTC)  # 2-day window, floored
+    assert deep_start == datetime(2026, 1, 10, tzinfo=UTC)  # 10-day deep window, floored
 
 
 def test_backfill_of_an_old_range_never_moves_the_watermark_back(

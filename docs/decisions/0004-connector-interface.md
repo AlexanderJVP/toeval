@@ -38,9 +38,14 @@ A **source** is one provider (Elia). A **stream** is one dataset from it (ods001
 `Connector` (abstract) implements `run(stream, mode)` as a template method:
 
 ```
-lock → load state → plan() → for each request: http → fetch() → write raw → validate()
+load state → plan() → for each request: fetch() via http → generic checks + validate()
+     → (fail: quarantine batch outside raw, run fails) → write raw → fold next_watermark()
      → only if every request succeeded: commit watermark, last_success, HTTP validators
 ```
+
+Validation runs *before* the raw write, so raw never holds a batch that failed a hard check.
+The single-writer lock is taken by the CLI (`run-due`, `ingest`) around all streams, not inside
+`run()`.
 
 It owns the `HttpClient`, which provides:
 - **Rate limiting:** a token bucket per source (`requests_per_second`, `burst`).

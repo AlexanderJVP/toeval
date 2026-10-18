@@ -25,6 +25,7 @@ def time_window_plan(
     *,
     chunk: timedelta,
     horizon: timedelta = timedelta(0),
+    align: timedelta = timedelta(days=1),
 ) -> list[TimeWindow]:
     """Windows to fetch for a timestamp-watermarked stream (docs/decisions/0002, 0004).
 
@@ -32,9 +33,12 @@ def time_window_plan(
     - first incremental run: from `backfill_start`
     - later incremental runs: from `watermark - revision_window` (or the deep window), so missed
       runs are caught up and recent revisions re-fetched
-    Window boundaries (including the end of an incremental run, rounded up) sit on a fixed grid
-    anchored at `backfill_start`. Re-runs therefore produce the same request keys, so unchanged
-    content is recognised and not written again.
+    Request keys are stable while the inputs stay within one grid cell: chunk boundaries and the
+    run end (rounded up) sit on a `chunk` grid, and an incremental start is rounded down to an
+    `align` grid (both anchored at `backfill_start`). So re-runs on the same day produce the same
+    keys even if the watermark moved a few quarter-hours, and unchanged content is not written
+    again. Once the start crosses into the next `align` cell, the first key changes; that window
+    then holds new data anyway.
     """
     if stream.watermark is not WatermarkKind.TIMESTAMP:
         raise ValueError(f"stream {stream.name!r} is not timestamp-watermarked")
@@ -56,7 +60,7 @@ def time_window_plan(
         window = stream.revision_window or timedelta(0)
         if ctx.deep_refetch and stream.deep_refetch is not None:
             window = max(window, stream.deep_refetch.window)
-        start = state.watermark.value - window
+        start = _floor_to_grid(state.watermark.value - window, origin, align)
 
     start = max(start, origin)
     if start >= end:
@@ -70,6 +74,10 @@ def time_window_plan(
         windows.append(TimeWindow(cursor, nxt))
         cursor = nxt
     return windows
+
+
+def _floor_to_grid(t: datetime, origin: datetime, step: timedelta) -> datetime:
+    return origin + ((t - origin) // step) * step
 
 
 def _ceil_to_grid(t: datetime, origin: datetime, chunk: timedelta) -> datetime:

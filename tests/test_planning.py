@@ -65,3 +65,16 @@ def test_deep_refetch_widens_the_window() -> None:
 
     assert normal[0].start == wm - timedelta(days=2)
     assert deep[0].start == wm - timedelta(days=10)
+
+
+def test_keys_stay_stable_when_the_watermark_moves_within_a_day() -> None:
+    now = datetime(2026, 3, 1, 18, tzinfo=UTC)
+    early = plan(
+        state_with(datetime(2026, 3, 1, 9, tzinfo=UTC)), RunContext(now, RunMode.INCREMENTAL)
+    )
+    later = plan(
+        state_with(datetime(2026, 3, 1, 17, tzinfo=UTC)), RunContext(now, RunMode.INCREMENTAL)
+    )
+
+    assert [w.key for w in early] == [w.key for w in later]
+    assert early[0].start == datetime(2026, 2, 27, tzinfo=UTC)  # (Mar 1 09:00 - 2d) floored to day
