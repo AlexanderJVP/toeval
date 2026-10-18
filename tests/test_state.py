@@ -91,11 +91,31 @@ def test_watermark_validates_kind_and_value() -> None:
         Watermark(WatermarkKind.NONE, "x")
 
 
-def test_manifest_tracks_content_hashes(store: StateStore) -> None:
-    entry = RawFileEntry("raw/a.parquet", "src", "s", "run1", "req", T0, "hash1", 3)
+def _file(name: str, run: str, key: str, at: datetime, digest: str) -> RawFileEntry:
+    return RawFileEntry(f"raw/{name}.parquet", "src", "s", run, key, at, digest, 1)
+
+
+def test_unchanged_batch_for_same_key_is_recognised(store: StateStore) -> None:
+    entry = _file("a", "run1", "K1", T0, "A")
     store.add_raw_file(entry)
 
-    assert store.has_content_hash("src", "s", "hash1")
-    assert not store.has_content_hash("src", "s", "hash2")
-    assert not store.has_content_hash("src", "other", "hash1")
+    assert store.is_unchanged("src", "s", "K1", "A", current_run="run2")
+    assert not store.is_unchanged("src", "s", "K1", "B", current_run="run2")
+    assert not store.is_unchanged("src", "s", "K2", "A", current_run="run2")
     assert store.raw_files("src", "s") == [entry]
+
+
+def test_a_b_a_is_not_deduplicated(store: StateStore) -> None:
+    # K1 stores A, an overlapping window K2 later stores B for the same rows, then K1 sees A again.
+    # Skipping that last A would leave staging on the stale B.
+    store.add_raw_file(_file("a", "run1", "K1", T0, "A"))
+    store.add_raw_file(_file("b", "run2", "K2", T0 + timedelta(hours=1), "B"))
+
+    assert not store.is_unchanged("src", "s", "K1", "A", current_run="run3")
+
+
+def test_files_from_the_current_run_do_not_block_dedup(store: StateStore) -> None:
+    store.add_raw_file(_file("a", "run1", "K1", T0, "A"))
+    store.add_raw_file(_file("b", "run2", "K2", T0 + timedelta(hours=1), "B"))
+
+    assert store.is_unchanged("src", "s", "K1", "A", current_run="run2")

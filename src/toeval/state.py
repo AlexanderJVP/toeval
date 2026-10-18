@@ -268,12 +268,31 @@ class StateStore:
 
     # -- raw manifest ---------------------------------------------------------------------------
 
-    def has_content_hash(self, source: str, stream: str, content_hash: str) -> bool:
-        row = self._con.execute(
-            "SELECT 1 FROM raw_files WHERE source = ? AND stream = ? AND content_hash = ? LIMIT 1",
-            [source, stream, content_hash],
+    def is_unchanged(
+        self, source: str, stream: str, request_key: str, content_hash: str, current_run: str
+    ) -> bool:
+        """True if writing this batch again would add no information.
+
+        That holds only when the latest file for this request key has the same content AND no
+        other run wrote to the stream since. Otherwise an overlapping window could have stored a
+        different value for the same rows in between (A -> B -> A must keep the last A). Files of
+        the current run are ignored: requests within one run cover disjoint keys by contract.
+        """
+        latest = self._con.execute(
+            "SELECT content_hash, run_id, ingested_at, path FROM raw_files"
+            " WHERE source = ? AND stream = ? AND request_key = ?"
+            " ORDER BY ingested_at DESC, path DESC LIMIT 1",
+            [source, stream, request_key],
         ).fetchone()
-        return row is not None
+        if latest is None or latest[0] != content_hash:
+            return False
+        _, latest_run, latest_at, _ = latest
+        newer = self._con.execute(
+            "SELECT 1 FROM raw_files WHERE source = ? AND stream = ? AND ingested_at >= ?"
+            " AND run_id NOT IN (?, ?) LIMIT 1",
+            [source, stream, latest_at, latest_run, current_run],
+        ).fetchone()
+        return newer is None
 
     def add_raw_file(self, entry: RawFileEntry) -> None:
         self._con.execute(
