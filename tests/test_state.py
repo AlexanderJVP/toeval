@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -52,16 +53,37 @@ def test_successful_run_persists_watermark_and_run(store: StateStore, watermark:
     assert run["watermark_after"] == watermark.serialize()
 
 
-def test_failed_run_leaves_stream_state_untouched(store: StateStore) -> None:
+def test_failed_run_only_counts_the_failure(store: StateStore) -> None:
     ok = store.start_run("src", "stream", "incremental", T0)
     good = StreamState("src", "stream", watermark=Watermark.timestamp(T0), last_success_at=T0)
     store.finish_run_success(ok, good, RunStats(), T0, None)
 
-    failed = store.start_run("src", "stream", "incremental", T0 + timedelta(days=1))
-    store.finish_run_failed(failed, RunStats(requests=1), T0, good.watermark, "boom")
+    for day in (1, 2):
+        failed = store.start_run("src", "stream", "incremental", T0 + timedelta(days=day))
+        store.finish_run_failed(
+            failed, RunStats(requests=1), T0 + timedelta(days=day), good.watermark, "boom"
+        )
 
-    assert store.get_stream_state("src", "stream") == good
+    assert store.get_stream_state("src", "stream") == replace(
+        good, consecutive_failures=2, last_failure_at=T0 + timedelta(days=2)
+    )
     assert store.get_run(failed)["error"] == "boom"
+
+
+def test_failed_backfill_does_not_count_towards_the_retry_backoff(store: StateStore) -> None:
+    failed = store.start_run("src", "stream", "backfill", T0)
+    store.finish_run_failed(failed, RunStats(), T0, None, "boom")
+
+    assert store.get_stream_state("src", "stream") == StreamState("src", "stream")
+    assert store.get_run(failed)["status"] == "failed"
+
+
+def test_first_ever_run_failing_creates_the_stream_state(store: StateStore) -> None:
+    failed = store.start_run("src", "stream", "incremental", T0)
+    store.finish_run_failed(failed, RunStats(), T0, None, "boom")
+
+    state = store.get_stream_state("src", "stream")
+    assert (state.watermark, state.consecutive_failures, state.last_failure_at) == (None, 1, T0)
 
 
 def test_timestamps_round_trip_as_utc_regardless_of_input_offset(store: StateStore) -> None:

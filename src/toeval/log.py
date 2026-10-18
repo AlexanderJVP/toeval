@@ -12,6 +12,7 @@ def setup_logging(level: str = "INFO", log_dir: Path | None = None) -> None:
     root.setLevel(level.upper())
     for handler in list(root.handlers):
         root.removeHandler(handler)
+        handler.close()
 
     formatter = logging.Formatter(FORMAT)
     console = logging.StreamHandler()

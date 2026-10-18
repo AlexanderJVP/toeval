@@ -8,11 +8,13 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, time, timedelta
+from typing import Any
 
 import httpx
 import pyarrow as pa
 import pyarrow.compute as pc
 
+from toeval.config import Settings
 from toeval.connectors.base import Connector, FetchRequest, FetchResult, RunContext
 from toeval.connectors.http import HttpClient
 from toeval.connectors.planning import time_window_plan
@@ -25,10 +27,11 @@ from toeval.connectors.spec import (
     SourceSpec,
     StreamSpec,
 )
-from toeval.state import StreamState, Watermark, WatermarkKind
+from toeval.state import StateStore, StreamState, Watermark, WatermarkKind
 
 ORIGIN = datetime(2026, 1, 1, tzinfo=UTC)
 FAST_HTTP = HttpPolicy(requests_per_second=1000, burst=1000, max_retries=2)
+NO_SLEEP = {"sleep": lambda _s: None}
 
 
 @dataclass
@@ -225,3 +228,23 @@ class FakePeriodConnector(Connector):
         self, stream: StreamSpec, current: Watermark | None, table: pa.Table
     ) -> Watermark | None:
         return Watermark.period(pc.max(table["period"]).as_py())
+
+
+# -- wiring --------------------------------------------------------------------------------------
+
+
+def bind(cls: type[Connector], server: Any) -> type[Connector]:
+    """A connector class whose instances talk to `server`, as the registry expects."""
+
+    class Bound(cls):  # type: ignore[valid-type, misc]
+        def __init__(self, settings: Settings, store: StateStore, **kwargs: Any) -> None:
+            super().__init__(
+                settings,
+                store,
+                transport=httpx.MockTransport(server.handler),
+                http_options=NO_SLEEP,
+                **kwargs,
+            )
+
+    Bound.__name__ = f"Bound{cls.__name__}"
+    return Bound

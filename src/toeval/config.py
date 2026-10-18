@@ -42,6 +42,10 @@ class Settings(BaseSettings):
         return self.data_path / "quarantine"
 
     @property
+    def log_path(self) -> Path:
+        return self.data_path / "logs"
+
+    @property
     def state_db_path(self) -> Path:
         return self.data_path / "state" / "state.duckdb"
 

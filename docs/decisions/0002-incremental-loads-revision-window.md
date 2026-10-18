@@ -18,7 +18,7 @@ The ingestion runs on a laptop via Task Scheduler, so runs will be missed when i
 3. **Measure instead of guessing:** each run compares re-fetched rows with the current staging values and logs the age of the oldest changed row (`revision_lag`). Window sizes get tuned from these logs after a few weeks.
 4. **Watermark** = latest timestamp with a non-null *measured* value, not the latest row (forecast rows run ahead). It is updated only after the raw writes and quality checks succeed. (Originally it also waited for the staging rebuild. 0004 decouples transformation from ingestion.)
 5. **Idempotency:** a fetch whose content hash equals the previous fetch for the same range is not written again. Staging keeps the latest ingested version per natural key, so duplicate fetches never duplicate rows.
-6. **Backfill** uses the same code path, chunked by year.
+6. **Backfill** uses the same code path, chunked per dataset so one export stays well under the HTTP timeout: 365 days for load, 182 for wind, 91 for solar (exports of the multi-row datasets are slow; `src/toeval/connectors/elia.py`). (Originally "chunked by year".)
 
 ## Consequences
 

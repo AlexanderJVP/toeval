@@ -65,6 +65,9 @@ class StreamState:
     last_deep_refetch_at: datetime | None = None
     # Per request key: {"etag": ..., "last_modified": ...} for conditional GETs.
     http_validators: dict[str, dict[str, str]] = field(default_factory=dict)
+    # Failed incremental runs since the last success; drives the retry backoff in run-due.
+    consecutive_failures: int = 0
+    last_failure_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -88,6 +91,8 @@ CREATE TABLE IF NOT EXISTS stream_state (
     last_success_at TIMESTAMP,
     last_deep_refetch_at TIMESTAMP,
     http_validators JSON,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    last_failure_at TIMESTAMP,
     PRIMARY KEY (source, stream)
 );
 CREATE TABLE IF NOT EXISTS runs (
@@ -140,7 +145,12 @@ class RunStats:
 
 
 class StateStore:
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, *, read_only: bool = False) -> None:
+        """Open the state DB. DuckDB allows one writing process at a time; opening fails with
+        `duckdb.IOException` while another process (a running ingest) holds the file."""
+        if read_only:
+            self._con = duckdb.connect(str(path), read_only=True)
+            return
         path.parent.mkdir(parents=True, exist_ok=True)
         self._con = duckdb.connect(str(path))
         self._con.execute(SCHEMA)
@@ -164,12 +174,13 @@ class StateStore:
     def get_stream_state(self, source: str, stream: str) -> StreamState:
         row = self._con.execute(
             "SELECT watermark_kind, watermark_value, last_success_at, last_deep_refetch_at,"
-            " http_validators FROM stream_state WHERE source = ? AND stream = ?",
+            " http_validators, consecutive_failures, last_failure_at"
+            " FROM stream_state WHERE source = ? AND stream = ?",
             [source, stream],
         ).fetchone()
         if row is None:
             return StreamState(source, stream)
-        kind, value, last_success, last_deep, validators = row
+        kind, value, last_success, last_deep, validators, failures, last_failure = row
         return StreamState(
             source=source,
             stream=stream,
@@ -177,6 +188,8 @@ class StateStore:
             last_success_at=_from_db(last_success),
             last_deep_refetch_at=_from_db(last_deep),
             http_validators=json.loads(validators) if validators else {},
+            consecutive_failures=failures,
+            last_failure_at=_from_db(last_failure),
         )
 
     # -- runs -----------------------------------------------------------------------------------
@@ -203,7 +216,9 @@ class StateStore:
         self._con.execute("BEGIN TRANSACTION")
         try:
             self._con.execute(
-                "INSERT OR REPLACE INTO stream_state VALUES (?, ?, ?, ?, ?, ?, ?)",
+                "INSERT OR REPLACE INTO stream_state (source, stream, watermark_kind,"
+                " watermark_value, last_success_at, last_deep_refetch_at, http_validators,"
+                " consecutive_failures, last_failure_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [
                     state.source,
                     state.stream,
@@ -212,6 +227,8 @@ class StateStore:
                     _to_db(state.last_success_at),
                     _to_db(state.last_deep_refetch_at),
                     json.dumps(state.http_validators),
+                    state.consecutive_failures,
+                    _to_db(state.last_failure_at),
                 ],
             )
             self._finish(run_id, "success", stats, finished_at, watermark_before, wm, None)
@@ -228,7 +245,23 @@ class StateStore:
         watermark_before: Watermark | None,
         error: str,
     ) -> None:
-        self._finish(run_id, "failed", stats, finished_at, watermark_before, None, error)
+        """Mark the run failed. A failed *incremental* run also counts towards the stream's retry
+        backoff; a failed manual backfill doesn't, so it never delays the scheduled runs."""
+        self._con.execute("BEGIN TRANSACTION")
+        try:
+            self._finish(run_id, "failed", stats, finished_at, watermark_before, None, error)
+            self._con.execute(
+                "INSERT INTO stream_state (source, stream, consecutive_failures, last_failure_at)"
+                " SELECT source, stream, 1, ? FROM runs WHERE run_id = ? AND mode = 'incremental'"
+                " ON CONFLICT (source, stream) DO UPDATE SET"
+                " consecutive_failures = stream_state.consecutive_failures + 1,"
+                " last_failure_at = excluded.last_failure_at",
+                [_to_db(finished_at), run_id],
+            )
+            self._con.execute("COMMIT")
+        except BaseException:
+            self._con.execute("ROLLBACK")
+            raise
 
     def _finish(
         self,

@@ -219,14 +219,18 @@ class Connector(ABC):
                 http.close()
 
         stats.requests = http.requests_sent
+        # A backfill of an old range must not make the scheduled run look done, nor clear the
+        # retry backoff of a stream whose incremental runs keep failing.
+        incremental = mode is RunMode.INCREMENTAL
         new_state = StreamState(
             source=self.source.name,
             stream=stream.name,
             watermark=watermark,
-            # A backfill of an old range must not make the scheduled run look done.
-            last_success_at=now if mode is RunMode.INCREMENTAL else state.last_success_at,
+            last_success_at=now if incremental else state.last_success_at,
             last_deep_refetch_at=now if deep else state.last_deep_refetch_at,
             http_validators=validators,
+            consecutive_failures=0 if incremental else state.consecutive_failures,
+            last_failure_at=None if incremental else state.last_failure_at,
         )
         try:
             self.store.finish_run_success(run_id, new_state, stats.freeze(), self._clock(), before)

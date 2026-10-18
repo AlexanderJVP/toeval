@@ -1,5 +1,6 @@
 """The run loop, exercised through the three fake source shapes in fakes.py."""
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pyarrow.parquet as pq
@@ -114,7 +115,9 @@ def test_failed_run_does_not_advance_the_watermark(
 
     assert not result.succeeded
     assert "404" in (result.error or "")
-    assert store.get_stream_state("series", "hourly") == before
+    after = store.get_stream_state("series", "hourly")
+    assert replace(after, consecutive_failures=0, last_failure_at=None) == before
+    assert after.consecutive_failures == 1
     assert store.get_run(result.run_id)["status"] == "failed"
 
 

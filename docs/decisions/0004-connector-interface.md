@@ -48,7 +48,7 @@ The single-writer lock is taken by the CLI (`run-due`, `ingest`) around all stre
 `run()`.
 
 It owns the `HttpClient`, which provides:
-- **Rate limiting:** a token bucket per source (`requests_per_second`, `burst`).
+- **Rate limiting:** a token bucket per source (`requests_per_second`, `burst`). As built it is per stream run; sharing it per source is deferred to iRail (ADR 0005).
 - **Retries:** on connection errors, timeouts, 429 and 5xx, with exponential backoff, full jitter and a cap. `Retry-After` is honoured. Other 4xx errors fail immediately (retrying a 404 just wastes requests).
 - **Auth** injection and a project User-Agent.
 - **Conditional GET:** `ETag` / `Last-Modified` per request key, stored in state. A 304 means "nothing new", which isn't an error. This covers iRail polling and Statbel's monthly checks without connector code.
@@ -73,6 +73,7 @@ The watermark advances after raw writes and quality checks succeed. Staging and 
 
 ## Consequences
 
-- One scheduler entry (`run-due` every 5 minutes) serves every cadence. Polls that aren't due exit in milliseconds.
+- One scheduler entry (`run-due` every 5 minutes) serves every cadence. Polls that aren't due exit in milliseconds. Retry backoff for failing streams and the Task Scheduler setup: ADR 0005.
+- **Retractions are invisible.** Empty batches are not written, so if a source withdraws rows (a window that returned rows now returns none), raw keeps the old rows as their latest version and staging keeps them too. None of the Phase 1 sources is known to withdraw rows. If one does, record an empty-batch marker per request key in `raw_files` and let staging treat the latest file per request key as authoritative for its range. Staging must never assume that a missing raw file for a range means "no data".
 - Live-only streams have permanent gaps when the laptop is off. That is a source property, not a bug. Coverage gets logged so the gaps are visible.
 - **Open issue (Phase 2):** iRail at 5-minute polling makes about 100k small raw files per year. Options: one file per run covering all stations (already planned), and later an append-only daily rollup layer between raw and staging. Decide when we build it.

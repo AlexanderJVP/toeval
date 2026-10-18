@@ -18,7 +18,16 @@ uv run pytest tests/test_cli.py::test_version_command_prints_version   # single 
 uv run ruff check . ; uv run ruff format .
 uv run pre-commit run --all-files
 uv run toeval --help
+
+# Operating the pipeline (exit codes: 0 ok, 1 a stream failed, 2 usage error, 3 lock held)
+uv run toeval ingest elia [load wind solar]     # incremental now, ignoring schedule and backoff
+uv run toeval backfill elia wind --from 2025-01-01 --to 2026-01-01   # naive times = Brussels
+uv run toeval run-due                           # what the scheduled task runs every 5 min
+uv run toeval status                            # watermark, last success, failures, next due
+.\scripts\scheduled-task.ps1 [-Uninstall]       # install/remove the Task Scheduler entry
 ```
+
+Logs: `data/logs/toeval.log` (rotating). Optional overrides: `sources.toml` (see the connector section).
 
 GitHub remote: `AlexanderJVP/toeval` (private until Phase 1 is presentable).
 
@@ -44,7 +53,8 @@ Do not scaffold folders or code for later phases ahead of time.
 - **0001:** DuckDB compute over Parquet storage under `TOEVAL_DATA_DIR` (default `./data`, gitignored). Layers: `raw` (immutable, one file per fetch, Hive-style partitions) → `staging` (typed, UTC, latest version per natural key, rebuildable) → `marts` (15 min / hourly / daily / weekly). SQL lives in `.sql` files so it can be ported to Spark or a cloud warehouse. Single writer, protected by a lock file.
 - **0002 (amended by 0004):** Incremental fetch range = `watermark − revision_window` (floored to a day grid) → `now + forecast horizon`, so missed runs (laptop off) catch up automatically and still re-check the window before the old watermark. The window is 14 days by default plus a monthly 90-day deep re-fetch. Both are provisional: every run will log `revision_lag`, the age of the oldest changed row (not built yet; needs staging). The watermark is the latest *measured* (non-null) timestamp and advances only after the raw writes and quality checks of **all** requests succeed. It does not wait for staging, which is a separate step.
 - **0003:** Elia hierarchy. Solar (`ods032`) has a `region='Belgium'` total plus regions and provinces, so **never sum all rows**. Wind (`ods031`) has 5 disjoint parts with no total, so sum them and track `parts_present`. Load (`ods001`) is one national series.
-- **0004 (connector interface):** see the next section.
+- **0004 (connector interface):** see the next section. Empty batches aren't written, so rows a source *withdraws* stay in raw and staging (known limitation).
+- **0005 (scheduled operation):** one Task Scheduler entry runs `toeval run-due` every 5 min via `.venv\Scripts\pythonw.exe -m toeval` (no console window). A stream is due when its schedule says so **and** the retry backoff after failed incremental runs has passed (5 min doubling to 6 h; `consecutive_failures` / `last_failure_at` in `stream_state`). Backfills don't touch `last_success_at` or the failure count. The rate limit is per stream run, not yet per source (deferred to iRail).
 
 ## Connector architecture (`src/toeval/connectors/`, ADR 0004)
 
@@ -57,6 +67,7 @@ The interface must fit three source shapes without special cases: queryable hist
 - `FetchRequest.key` must be stable across runs for the same logical request. Requests within one run must cover disjoint natural keys. The raw dedup rule (`StateStore.is_unchanged`) depends on both.
 - Raw (`warehouse/raw.py`): `<raw>/<source>/<stream>/ingest_date=YYYY-MM-DD/<HHMMSS>_<run8>_<sha(request_key)8>_<hash12>.parquet`, with `_ingested_at` and `_request_key` columns added. Empty batches are not written. A batch is skipped only if the latest file for its key has the same hash **and** no other run wrote to the stream since; this keeps A → B → A correct. Batches that fail the quality gate go to `<data>/quarantine/` (`Settings.quarantine_path`), **never under raw**, so staging globbing `raw/**` can't pick them up.
 - `lock.py`: single-writer `FileLock` (stale after 6 h), taken at the CLI level, not inside `run()`.
+- `registry.py` maps source names to connector classes. `src/toeval/pipeline.py` (`Pipeline`) applies `sources.toml` overrides (validated up front; unknown sources fail), decides what is due (`next_due`, `retry_delay`) and runs streams. `cli.py` adds settings, logging, the lock and the state store around it. Tests swap `registry.CONNECTORS` for fakes wired to mock servers with `fakes.bind`.
 - Tests inject `transport=httpx.MockTransport(...)`, a fake `clock`, and `http_options={"sleep": ...}`, so they never sleep or touch the network.
 
 ## Elia API facts (verified 2026-10-18)
