@@ -1,0 +1,44 @@
+[project]
+name = "toeval"
+version = "0.1.0"
+description = "Toeval: a personal Belgian open-data platform for spurious correlations and self-supervised time-series learning."
+readme = "README.md"
+authors = [
+    { name = "Alexander Van Puyenbroeck", email = "alexander.van.puyenbroeck15@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.5.6",
+    "httpx>=0.28.1",
+    "pyarrow>=26.0.0",
+    "pydantic-settings>=2.16.0",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+toeval = "toeval.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "pytest>=9.1.1",
+    "respx>=0.23.1",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF", "DTZ", "PT"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers -m 'not live'"
+markers = ["live: hits real external APIs (deselected by default)"]
