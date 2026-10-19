@@ -1,6 +1,6 @@
 # 0007. A local admin console that never becomes a second writer
 
-- Status: accepted (steps 1–2 of 4 built: status page, live run feed)
+- Status: accepted (steps 1–3 of 4 built: status page, live run feed, actions)
 - Date: 2026-10-19
 
 ## Context
@@ -21,7 +21,13 @@ This is a private operations tool on the owner's laptop, separate from the plann
   - *error*: a stream failing (with its retry time), failed transforms, the scheduled task missing, disabled or failing;
   - *warn*: quality warnings, a stream overdue by more than 30 minutes while nothing runs (the scheduler isn't working);
   - *running*: the lock is held by a live process.
-- **Security:** binding to 127.0.0.1 keeps other machines out. `TrustedHostMiddleware` rejects other `Host` headers, so a malicious web page can't read the API through DNS rebinding. Actions (later steps) will also require a per-session token, so a cross-site request can't trigger them.
+- **Security:** binding to 127.0.0.1 keeps other machines out. `TrustedHostMiddleware` rejects other `Host` headers, so a malicious web page can't read the API through DNS rebinding. Every action (POST) needs the per-session token that `toeval ui` generates and embeds in the page, sent as `X-Toeval-Token`; another site can't read the page, so it can't know the token, and the custom header forces a CORS preflight the app never approves. A foreign `Origin` header is refused too. A page left open from an earlier console session gets "reload the page".
+- **Actions (step 3):**
+  - *Fetch now* and *Rebuild now* start `toeval ingest <source> <stream>` and `toeval transform` as separate processes (`ui/actions.py`). They take the ingest lock, log and emit events like any run. Their output goes to `data/logs/console/` (last 50 kept) and the page shows the tail and the exit code. They run in their own process group, so stopping the console doesn't stop a fetch halfway.
+  - One job at a time, and none while the lock is held by a live process (409). A scheduled run can still take the lock first; the job then exits 3 and the page says so.
+  - *Pause / resume* (the "break connection" request) sets or removes `paused = true` under `[<source>.streams.<stream>]` in `sources.toml`. `run-due` skips paused streams; explicit `ingest` and `backfill` still run them, because asking for a run by name is a clear intent. Paused streams are never "overdue", but show as a warning, since their data goes stale. The same edit is available as `toeval pause/resume`.
+  - Edits to `sources.toml` keep comments and formatting (tomlkit), are validated exactly like a run validates the file (`pipeline.resolve_specs`) before anything is written, and replace the file atomically, so a run never reads a half-written or invalid file.
+- **The console logs to its terminal only.** Holding `data/logs/toeval.log` open in the long-running console process would make the pipeline's log rotation fail on Windows.
 - **Live progress** can't come from the state DB, which a run holds for its whole duration. The process holding the ingest lock appends **progress events** to `data/state/events.jsonl` (`toeval/events.py`): `run_started`, `planned`, `request_started`, `request_done` (rows, and whether the batch was stored, unchanged, not modified or quarantined), `run_finished`, `transform_started`, `model_built`, `transform_finished`, and `idle` once the state DB is closed. The console tails the file (`/api/events?cursor=`) every second.
   - Events are informational: the state DB stays the source of truth, and a failure to write an event never fails a run.
   - Only the lock holder writes, so there is one writer. A `run-due` tick with nothing due writes nothing.
@@ -33,7 +39,7 @@ This is a private operations tool on the owner's laptop, separate from the plann
 
 1. Read-only status page (built).
 2. Live run feed (built): progress events, a data-flow diagram and a feed.
-3. Actions: fetch now, pause/resume a stream (`run-due` skips paused streams), run transform.
+3. Actions (built): fetch now, pause/resume a stream, rebuild.
 4. Schedule editor writing `sources.toml`.
 
 "Add stream" is limited to what configuration can express: a new *source* needs a connector, because every API differs.

@@ -166,6 +166,9 @@ class StreamSpec(_Frozen):
     # Earliest data the source can serve by query. None: no queryable history, so backfill is
     # refused (live-only sources, or files that always contain the full history anyway).
     backfill_start: datetime | None = None
+    # Paused streams are skipped by scheduled runs (`run-due`); explicit `ingest`/`backfill` still
+    # run them. Set in sources.toml, e.g. by `toeval pause` or the admin console.
+    paused: bool = False
 
     @model_validator(mode="after")
     def _consistent(self) -> "StreamSpec":

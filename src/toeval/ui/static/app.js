@@ -1,4 +1,4 @@
-// toeval console: polls /api/snapshot and renders it. Read-only (ADR 0007).
+// toeval console: polls /api/snapshot and renders it, and starts actions (ADR 0007).
 "use strict";
 
 const POLL_MS = 4000;
@@ -13,8 +13,18 @@ const LEVEL_TEXT = {
 let snapshot = null;
 let fetchedAt = null;
 let connectionError = null;
+let jobs = [];
 
 const $ = (id) => document.getElementById(id);
+const TOKEN = document.querySelector('meta[name="toeval-token"]').content;
+
+// Only touch the DOM when the markup changed, so a button isn't replaced mid-click.
+function setHTML(el, html) {
+  if (el.dataset.html !== html) {
+    el.innerHTML = html;
+    el.dataset.html = html;
+  }
+}
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({
@@ -82,6 +92,7 @@ function render() {
   renderLayers();
   renderQuality();
   renderRuns();
+  renderJobs();
   $("data-dir").textContent = snapshot.data_dir || "";
 }
 
@@ -140,6 +151,7 @@ function renderBanner() {
 }
 
 function streamLevel(s) {
+  if (s.paused) return "paused";
   if (s.consecutive_failures) return "error";
   if (s.last_run && s.last_run.status === "running" && snapshot.lock && snapshot.lock.alive) return "running";
   if (s.overdue || (s.data_age_hours ?? 0) > snapshot.freshness_warn_hours) return "warn";
@@ -149,10 +161,11 @@ function streamLevel(s) {
 function renderStreams() {
   const streams = snapshot.streams;
   if (!streams.length) {
-    $("streams").innerHTML = `<div class="empty">No streams ingested yet. Run <code>toeval ingest elia</code>.</div>`;
+    setHTML($("streams"), `<div class="empty">No streams ingested yet. Run <code>toeval ingest elia</code>.</div>`);
     return;
   }
-  $("streams").innerHTML = streams.map((s) => {
+  const busy = busyReason();
+  setHTML($("streams"), streams.map((s) => {
     const level = streamLevel(s);
     const limit = snapshot.freshness_warn_hours;
     const fill = s.data_age_hours == null ? 0 : Math.max(4, 100 * (1 - s.data_age_hours / limit));
@@ -160,9 +173,12 @@ function renderStreams() {
     const runText = run
       ? `${run.status} ${relative(run.started_at)} · ${count(run.rows_fetched)} rows · ${duration(run.duration_s)}`
       : "never";
-    const next = s.consecutive_failures
-      ? `<span class="error">retry ${relative(s.next_due)}</span> (${s.consecutive_failures} failed in a row)`
-      : s.next_due ? `${relative(s.next_due)} · ${when(s.next_due)}` : "now";
+    const next = s.paused
+      ? `<span class="paused-text">paused: scheduled runs skip this stream</span>`
+      : s.consecutive_failures
+        ? `<span class="error">retry ${relative(s.next_due)}</span> (${s.consecutive_failures} failed in a row)`
+        : s.next_due ? `${relative(s.next_due)} · ${when(s.next_due)}` : "now";
+    const ref = `data-source="${esc(s.source)}" data-stream="${esc(s.stream)}"`;
     return `
       <article class="card" data-level="${level}">
         <div class="card-head">
@@ -180,8 +196,14 @@ function renderStreams() {
           <dt>Raw</dt><dd>${count(s.raw_files)} files · ${count(s.raw_rows)} rows</dd>
           ${run && run.error ? `<dt>Error</dt><dd class="error">${esc(run.error)}</dd>` : ""}
         </dl>
+        <div class="card-actions">
+          <button type="button" data-action="fetch" ${ref} ${busy ? `disabled title="${esc(busy)}"` : 'title="Run an incremental fetch now, whatever the schedule says"'}>Fetch now</button>
+          ${s.paused
+            ? `<button type="button" data-action="resume" ${ref} title="Scheduled runs pick this stream up again">Resume</button>`
+            : `<button type="button" data-action="pause" ${ref} class="quiet" title="Scheduled runs skip this stream until you resume it">Pause</button>`}
+        </div>
       </article>`;
-  }).join("");
+  }).join(""));
 }
 
 function renderLayers() {
@@ -195,7 +217,8 @@ function renderLayers() {
     : t.consecutive_failures
       ? `${t.consecutive_failures} failed attempt(s) · ${esc(t.last_error)}`
       : `last rebuild ${relative(t.last_success_at)}`;
-  $("layers").innerHTML = `
+  const busy = busyReason();
+  setHTML($("layers"), `
     <div class="layer"><div class="name">Raw</div><div class="value">${bytes(st.raw_bytes)}</div>
       <div class="detail">${count(rawFiles)} files · ${count(rawRows)} rows, every version kept</div></div>
     <div class="layer"><div class="name">Staging</div><div class="value">${bytes(st.staging_bytes)}</div>
@@ -204,16 +227,123 @@ function renderLayers() {
       <div class="detail">energy · 15 min and hourly</div></div>
     <div class="layer" data-level="${st.quarantine_files ? "error" : "ok"}"><div class="name">Quarantine</div>
       <div class="value">${st.quarantine_files} files</div><div class="detail">batches that failed a hard check</div></div>
-    <div class="layer wide" data-level="${transformLevel}"><div class="name">Transform</div>
-      <div class="value">${t && t.last_success_at ? when(t.last_success_at) : "–"}</div>
-      <div class="detail">${transformText}</div></div>`;
+    <div class="layer wide" data-level="${transformLevel}">
+      <div class="layer-row">
+        <div><div class="name">Transform</div>
+          <div class="value">${t && t.last_success_at ? when(t.last_success_at) : "–"}</div>
+          <div class="detail">${transformText}</div></div>
+        <button type="button" data-action="transform" ${busy ? `disabled title="${esc(busy)}"` : 'title="Rebuild staging and marts from raw and run the quality checks"'}>Rebuild now</button>
+      </div></div>`);
+}
+
+// -- actions -----------------------------------------------------------------------------------
+
+function busyReason() {
+  const job = jobs.find((j) => j.status === "running");
+  if (job) return `${job.label} is running`;
+  if (snapshot && snapshot.lock && snapshot.lock.alive) return "a run is in progress";
+  return null;
+}
+
+async function action(path, body) {
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Toeval-Token": TOKEN },
+      body: JSON.stringify(body || {}),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const detail = typeof result.detail === "string" ? result.detail : `failed (${response.status})`;
+      toast(detail, "error");
+      return null;
+    }
+    return result;
+  } catch (err) {
+    toast("the console server is not reachable", "error");
+    return null;
+  }
+}
+
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-action]");
+  if (!button || button.disabled) return;
+  const { action: kind, source, stream } = button.dataset;
+  button.disabled = true;
+  if (kind === "fetch" || kind === "transform") {
+    const job = kind === "fetch"
+      ? await action("/api/actions/ingest", { source, stream })
+      : await action("/api/actions/transform");
+    if (job) {
+      toast(`started: ${job.label}`, "ok");
+      await pollJobs();
+    }
+  } else if (kind === "pause" || kind === "resume") {
+    const done = await action("/api/actions/pause", { source, stream, paused: kind === "pause" });
+    if (done) {
+      toast(`${source}/${stream} ${kind === "pause" ? "paused: scheduled runs skip it" : "resumed"}`, "ok");
+      const s = snapshot.streams.find((x) => x.source === source && x.stream === stream);
+      if (s) s.paused = done.paused;
+      poll();
+    }
+  }
+  button.disabled = false;
+  render();
+});
+
+function toast(message, level) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.dataset.level = level;
+  el.textContent = message;
+  $("toasts").appendChild(el);
+  setTimeout(() => el.classList.add("leaving"), 4500);
+  setTimeout(() => el.remove(), 5000);
+}
+
+function renderJobs() {
+  $("jobs-section").hidden = !jobs.length;
+  setHTML($("jobs"), jobs.map((j, i) => {
+    const level = j.status === "running" ? "running" : j.status === "ok" ? "success" : "failed";
+    const took = j.finished_at ? span((Date.parse(j.finished_at) - Date.parse(j.started_at)) / 1000) : "";
+    const ended = j.finished_at ? ` · ${j.outcome} after ${took}` : "";
+    return `
+      <details class="job"${i === 0 && j.status !== "ok" ? " open" : ""}>
+        <summary>
+          <span class="status ${level}">${esc(j.status)}</span>
+          <span class="job-label">${esc(j.label)}</span>
+          <span class="muted small">${when(j.started_at)}${esc(ended)}</span>
+          <code class="muted small job-cmd">${esc(j.command)}</code>
+        </summary>
+        <pre>${esc(j.output.join("\n")) || "(no output yet)"}</pre>
+      </details>`;
+  }).join(""));
+}
+
+let jobsWereRunning = false;
+
+async function pollJobs() {
+  try {
+    const response = await fetch("/api/jobs", { cache: "no-store" });
+    jobs = (await response.json()).jobs;
+  } catch (err) {
+    return;
+  }
+  const running = jobs.some((j) => j.status === "running");
+  if (jobsWereRunning && !running && jobs.length) {
+    const last = jobs[0];
+    toast(`${last.label}: ${last.outcome}`, last.status === "ok" ? "ok" : "error");
+    poll();
+  }
+  jobsWereRunning = running;
+  if (snapshot && snapshot.streams) render();
 }
 
 function renderQuality() {
   const q = snapshot.quality;
   $("quality-at").textContent = q.length ? `· checked ${relative(q[0].checked_at)}` : "";
   if (!q.length) {
-    $("quality").innerHTML = `<tr><td class="empty">No checks yet: they run after each transform.</td></tr>`;
+    setHTML($("quality"), `<tr><td class="empty">No checks yet: they run after each transform.</td></tr>`);
     return;
   }
   // One row per check, one column per subject; details in the tooltip.
@@ -225,12 +355,12 @@ function renderQuality() {
     const value = c.value == null ? "n/a" : `${Number(c.value.toFixed(1))} ${esc(c.unit)}`;
     return `<td class="${c.ok ? "ok" : "warn"}" title="${esc(c.details)}"><span class="tick"></span>${value}</td>`;
   };
-  $("quality").innerHTML = `
+  setHTML($("quality"), `
     <thead><tr><th>Check</th>${subjects.map((s) => `<th>${esc(s.split("/").pop())}</th>`).join("")}</tr></thead>
     <tbody>${checks.map((check) => `
       <tr><td class="check">${esc(check.replace(/_/g, " "))}</td>
       ${subjects.map((subject) => cell(check, subject)).join("")}</tr>`).join("")}
-    </tbody>`;
+    </tbody>`);
 }
 
 function renderRuns() {
@@ -276,5 +406,7 @@ async function poll() {
 }
 
 poll();
+pollJobs();
 setInterval(poll, POLL_MS);
+setInterval(pollJobs, 2000);
 setInterval(() => { renderUpdated(); if (snapshot && snapshot.streams) { renderStreams(); renderHealth(); } }, 1000);

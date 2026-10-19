@@ -263,6 +263,7 @@ function streamStatus(key) {
     if (s.phase === "done") return ["ok", `done ${relative(s.finishedAt)} · ${count(s.rows)} rows`];
   }
   const info = snapshot && snapshot.streams && snapshot.streams.find((x) => `${x.source}/${x.stream}` === key);
+  if (info && info.paused) return ["", "paused · scheduled runs skip it"];
   if (info && info.consecutive_failures) return ["error", `failing · retry ${relative(info.next_due)}`];
   if (info) return ["", `idle · next ${info.next_due ? relative(info.next_due) : "now"}`];
   return ["", "idle"];

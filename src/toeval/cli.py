@@ -89,6 +89,32 @@ def transform() -> None:
 
 
 @app.command()
+def pause(source: str, stream: str) -> None:
+    """Pause a stream: scheduled runs skip it until `resume` (explicit `ingest` still runs it)."""
+    _set_paused(source, stream, paused=True)
+
+
+@app.command()
+def resume(source: str, stream: str) -> None:
+    """Resume a paused stream; it runs at its next scheduled time (or now, if that has passed)."""
+    _set_paused(source, stream, paused=False)
+
+
+def _set_paused(source: str, stream: str, *, paused: bool) -> None:
+    from toeval.sources_file import set_stream_option
+
+    settings = _setup()
+    try:
+        set_stream_option(settings.sources_path, source, stream, "paused", True if paused else None)
+    except (KeyError, ValueError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(EXIT_USAGE) from None
+    word = "paused" if paused else "resumed"
+    log.info("%s/%s %s (%s)", source, stream, word, settings.sources_path)
+    typer.echo(f"{source}/{stream}: {word} (in {settings.sources_path})")
+
+
+@app.command()
 def status() -> None:
     """Show each stream's watermark, last success, failures and next due time."""
     settings = _setup()
@@ -107,7 +133,8 @@ def status() -> None:
                 "The next run (scheduled, or `toeval run-due`) upgrades it."
             )
             return
-        for s in Pipeline(settings, store).status():
+        pipeline = Pipeline(settings, store)
+        for s in pipeline.status():
             wm = s.state.watermark.serialize() if s.state.watermark else "-"
             failures = (
                 f", {s.state.consecutive_failures} failed run(s)"
@@ -117,6 +144,7 @@ def status() -> None:
             typer.echo(
                 f"{s.source}/{s.stream}: watermark {wm}, last success "
                 f"{_fmt(s.state.last_success_at)}{failures}, next due {_fmt(s.next_due) or 'now'}"
+                + (" (paused)" if pipeline.spec(s.source).stream(s.stream).paused else "")
             )
         t = store.transform_status()
         if t.last_attempt_at is not None:
@@ -143,7 +171,7 @@ def ui(
     port: Annotated[int, typer.Option(help="Port on 127.0.0.1.")] = 8765,
     browser: Annotated[bool, typer.Option(help="Open the console in your browser.")] = True,
 ) -> None:
-    """Open the local admin console (read-only status page) at http://127.0.0.1:PORT."""
+    """Open the local admin console at http://127.0.0.1:PORT."""
     import threading
     import webbrowser
 
@@ -151,7 +179,10 @@ def ui(
 
     from toeval.ui.app import create_app
 
-    settings = _setup()
+    settings = get_settings()
+    # Terminal only: holding data/logs/toeval.log open would stop the pipeline's processes from
+    # rotating it on Windows.
+    setup_logging(settings.log_level, None)
     url = f"http://127.0.0.1:{port}/"
     typer.echo(f"toeval console on {url} (Ctrl+C to stop)")
     if browser:

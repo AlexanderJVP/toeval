@@ -192,6 +192,21 @@ footer { padding: 20px 32px 32px; text-align: center; }
 .card[data-level="warn"] { --dot: var(--warn); }
 .card[data-level="error"] { --dot: var(--error); }
 .card[data-level="running"] { --dot: var(--running); }
+.card[data-level="paused"] { --dot: var(--muted); }
+.card[data-level="paused"] .freshness, .card[data-level="paused"] .facts { opacity: 0.6; }
+.paused-text { color: var(--muted); font-style: italic; }
+
+.card-actions { display: flex; gap: 8px; margin-top: 14px; }
+button {
+  font: inherit; font-size: 13px; color: var(--text); cursor: pointer;
+  background: #4ea8ff22; border: 1px solid #4ea8ff66; border-radius: 8px; padding: 5px 12px;
+  transition: background 0.2s, border-color 0.2s;
+}
+button:hover:not(:disabled) { background: #4ea8ff3d; border-color: var(--running); }
+button:focus-visible { outline: 2px solid var(--running); outline-offset: 2px; }
+button.quiet { background: transparent; border-color: var(--line); color: var(--muted); }
+button.quiet:hover:not(:disabled) { color: var(--text); border-color: var(--muted); background: transparent; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .card-title { font-size: 17px; font-weight: 600; }
@@ -216,6 +231,7 @@ footer { padding: 20px 32px 32px; text-align: center; }
 .layer .value { font-size: 20px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .layer .detail { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
 .layer.wide { grid-column: 1 / -1; }
+.layer-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .layer[data-level="error"] { border-color: #ff5d6c88; }
 .layer[data-level="error"] .value { color: var(--error); }
 
@@ -244,6 +260,30 @@ td.detail.error { color: var(--error); }
 .status.running { --dot: var(--running); color: var(--running); }
 
 .empty { color: var(--muted); padding: 16px; }
+
+/* -- jobs and toasts ------------------------------------------------------------------------ */
+
+.jobs { display: grid; gap: 8px; }
+.job { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.job summary { display: flex; gap: 14px; align-items: baseline; cursor: pointer; flex-wrap: wrap; }
+.job-label { font-weight: 600; }
+.job-cmd { margin-left: auto; }
+.job pre {
+  margin: 10px 0 2px; padding: 10px 12px; border-radius: 8px; background: #0b1020;
+  color: var(--muted); font: 12px/1.5 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere;
+  max-height: 240px; overflow-y: auto;
+}
+
+.toasts { position: fixed; right: 20px; bottom: 20px; display: grid; gap: 8px; z-index: 5; max-width: min(420px, calc(100vw - 32px)); }
+.toast {
+  padding: 10px 14px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line);
+  box-shadow: 0 8px 30px #0008; font-size: 13.5px; animation: toast-in 0.25s ease-out;
+  transition: opacity 0.4s, transform 0.4s;
+}
+.toast[data-level="ok"] { border-color: #36d39988; }
+.toast[data-level="error"] { border-color: var(--error); color: #ffc2c8; }
+.toast.leaving { opacity: 0; transform: translateY(6px); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 
 @media (max-width: 900px) {
   .top { grid-template-columns: 1fr; padding: 16px; }

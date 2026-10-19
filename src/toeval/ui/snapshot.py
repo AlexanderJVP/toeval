@@ -1,6 +1,6 @@
 """What the admin console shows: one JSON-ready snapshot of the pipeline's state.
 
-Read-only by design (ADR 0007): the state DB is opened read-only for the duration of one
+Read-only (ADR 0007): the state DB is opened read-only for the duration of one
 snapshot. While an ingest holds it (DuckDB allows one writing process), the snapshot says so and
 the app keeps serving the last readable one.
 """
@@ -77,6 +77,7 @@ def _snapshot(
                 "source": s.source,
                 "stream": s.stream,
                 "schedule": describe_schedule(spec),
+                "paused": spec.paused,
                 "watermark": wm.serialize() if wm else None,
                 "data_until": _iso(data_until),
                 "data_age_hours": _hours(now - data_until) if data_until else None,
@@ -84,7 +85,7 @@ def _snapshot(
                 "consecutive_failures": s.state.consecutive_failures,
                 "last_failure_at": _iso(s.state.last_failure_at),
                 "next_due": _iso(s.next_due),
-                "overdue": _overdue(s.next_due, now, lock),
+                "overdue": not spec.paused and _overdue(s.next_due, now, lock),
                 "raw_files": files,
                 "raw_rows": rows,
                 "last_run": _run(last_run.get((s.source, s.stream))),
@@ -147,6 +148,8 @@ def health(snapshot: Json) -> Json:
             )
         elif s["overdue"]:
             reasons.append(Reason("warn", f"{name}: overdue since {s['next_due']}"))
+        if s.get("paused"):
+            reasons.append(Reason("warn", f"{name} is paused: scheduled runs skip it"))
     t = snapshot.get("transform") or {}
     if t.get("consecutive_failures"):
         reasons.append(

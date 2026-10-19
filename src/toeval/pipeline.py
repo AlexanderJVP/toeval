@@ -7,6 +7,7 @@ import logging
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from toeval.config import Settings
 from toeval.connectors import registry
@@ -48,8 +49,29 @@ def next_due(stream: StreamSpec, state: StreamState) -> datetime | None:
 
 
 def is_stream_due(stream: StreamSpec, state: StreamState, now: datetime) -> bool:
+    if stream.paused:
+        return False
     due = next_due(stream, state)
     return due is None or now >= due
+
+
+def resolve_specs(
+    overrides: Mapping[str, Any], connectors: Mapping[str, type[Connector]], origin: object
+) -> dict[str, SourceSpec]:
+    """Every source's spec with its sources.toml overrides applied. Raises ValueError for unknown
+    sources or invalid values, so a typo fails before any run starts."""
+    unknown = set(overrides) - set(connectors)
+    if unknown:
+        raise ValueError(f"{origin}: unknown sources {sorted(unknown)}")
+    specs = {}
+    for name, cls in connectors.items():
+        source_overrides = overrides.get(name)
+        if source_overrides is not None and not isinstance(source_overrides, Mapping):
+            raise ValueError(f"{origin}: [{name}] must be a table")
+        specs[name] = (
+            cls.spec.with_overrides(dict(source_overrides)) if source_overrides else cls.spec
+        )
+    return specs
 
 
 @dataclass(frozen=True)
@@ -79,12 +101,9 @@ class Pipeline:
         self._clock = clock
         self._events = events
         self._connectors = dict(registry.CONNECTORS if connectors is None else connectors)
-        self._overrides = load_overrides(settings.sources_path)
-        unknown = set(self._overrides) - set(self._connectors)
-        if unknown:
-            raise ValueError(f"{settings.sources_path}: unknown sources {sorted(unknown)}")
-        # Validate every override up front, so a typo fails before any run starts.
-        self._specs = {name: self._spec(name) for name in self._connectors}
+        self._specs = resolve_specs(
+            load_overrides(settings.sources_path), self._connectors, settings.sources_path
+        )
 
     @property
     def sources(self) -> list[str]:
@@ -183,10 +202,12 @@ class Pipeline:
                 out.append(StreamStatus(source, stream.name, state, next_due(stream, state)))
         return out
 
-    def _spec(self, source: str) -> SourceSpec:
-        spec = self._connectors[source].spec
-        overrides = self._overrides.get(source)
-        return spec.with_overrides(overrides) if overrides else spec
 
-
-__all__ = ["Pipeline", "StreamStatus", "is_stream_due", "next_due", "retry_delay"]
+__all__ = [
+    "Pipeline",
+    "StreamStatus",
+    "is_stream_due",
+    "next_due",
+    "resolve_specs",
+    "retry_delay",
+]
