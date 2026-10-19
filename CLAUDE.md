@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, done 2026-10-20: connector, staging, `mart_weather_hourly`, `mart_energy_weather_hourly`, per-stream quality limits; history since 2014-12-31 loaded, ingests daily at 12:00), then IRCEL-CELINE, a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, done 2026-10-20: connector, staging, `mart_weather_hourly`, `mart_energy_weather_hourly`, per-stream quality limits; history since 2014-12-31 loaded, ingests daily at 12:00), then IRCEL-CELINE (ADR 0009, step 1 of 3 built: connector, stream **paused** in the local `sources.toml` until step 3 downloads the history), a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
 ## Commands
 
@@ -111,6 +111,16 @@ Implemented in `src/toeval/connectors/openmeteo.py`: source `openmeteo`, stream 
 - `mart_energy_weather_hourly`: one row per `mart_energy_hourly` hour; land weather = mean of the 6 land points, NULL unless all 6 (the SQL hard-codes 6; `tests/test_weather.py` asserts `LOCATIONS` has 6 land points). Offshore wind is separate. The last ~6 days have energy but no weather (ERA5 delay), as expected.
 - A full backfill costs ~2,150 of the 5,000 calls/hour: never run two within an hour.
 - Limits: freshness 8 days, `revision_lag` 96 days (80% of the 120-day deep re-check, which is what catches ERA5T corrections).
+
+## IRCEL-CELINE facts (verified 2026-10-20, ADR 0009)
+
+Implemented in `src/toeval/connectors/irceline.py`: source `irceline`, stream `hourly`, natural key `(station, pollutant, time)`, 15 curated `STATIONS` × NO2/PM10/PM2.5/O3 = 54 series. Fixtures: `tests/fixtures/irceline/README.md`.
+
+- 52°North timeseries API `https://geo.irceline.be/sos/api/v1/`, no key, CC BY 4.0 (credit IRCEL-CELINE), no documented rate limit (we use 2 req/s).
+- Series are looked up every run (`/timeseries?phenomenon=<id>&expanded=true`, 4 GETs); then one GET per series per window inside `fetch`, so one raw file per window. Timespans include both ends and must be shorter than 367 days (HTTP 400), hence 365-day chunks; future or pre-history ranges return an empty list.
+- **Timestamps are the end of the hour** (UTC): the value at `time` covers `[time − 1 h, time)`. Raw keeps it; marts shift to `hour_start_utc = time − 1 h`.
+- Missing hours are `null` (dropped in `fetch`). Data is under ~3 h behind. Whether validated values later replace provisional ones is undocumented: deep re-check 400 days every 30 days, `revision_lag_limit` 320 days, `freshness_limit` 36 h.
+- Rollout order for a new source: write `paused = true` to `sources.toml` first, then register (an unknown source in `sources.toml` fails every tick harmlessly; the other order could start the full download).
 
 ## Conventions
 

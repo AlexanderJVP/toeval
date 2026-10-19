@@ -1,0 +1,6544 @@
+{
+ "8": [
+  {
+   "id": "10601",
+   "label": "Nitrogen dioxide 10601 -  - procedure, 42R802 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1148,
+     "label": "42R802 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.4317922307924436,
+      51.2095187315834,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1304643600000,
+    "value": 92.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 17.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "10601",
+     "label": "10601 -  - procedure"
+    },
+    "feature": {
+     "id": "1148",
+     "label": "42R802 - Borgerhout"
+    },
+    "procedure": {
+     "id": "10601",
+     "label": "10601 -  - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "10761",
+   "label": "Nitrogen dioxide 10761 - Unknown device - procedure, 42R804 - Antwerpen (Ring)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1723,
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "geometry": {
+     "coordinates": [
+      4.441947090848597,
+      51.206303948654636,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1509411600000,
+    "value": 67.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 14.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "10761",
+     "label": "10761 - Unknown device - procedure"
+    },
+    "feature": {
+     "id": "1723",
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "procedure": {
+     "id": "10761",
+     "label": "10761 - Unknown device - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6574",
+   "label": "Nitrogen dioxide 6574 - MELOY NA + AC-31M (Environnement) - procedure, 41R001 - Molenbeek-Saint-Jean",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1118,
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "geometry": {
+     "coordinates": [
+      4.333819707712016,
+      50.84966548806797,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 51.5
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 22.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6574",
+     "label": "6574 - MELOY NA + AC-31M (Environnement) - procedure"
+    },
+    "feature": {
+     "id": "1118",
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "procedure": {
+     "id": "6574",
+     "label": "6574 - MELOY NA + AC-31M (Environnement) - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6622",
+   "label": "Nitrogen dioxide 6622 - AC-31M (Environnement) sedert 97 - procedure, 41R012 - Uccle",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1122,
+     "label": "41R012 - Uccle"
+    },
+    "geometry": {
+     "coordinates": [
+      4.358538856351678,
+      50.796631638497885,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 54.5
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 13.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6622",
+     "label": "6622 - AC-31M (Environnement) sedert 97 - procedure"
+    },
+    "feature": {
+     "id": "1122",
+     "label": "41R012 - Uccle"
+    },
+    "procedure": {
+     "id": "6622",
+     "label": "6622 - AC-31M (Environnement) sedert 97 - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6690",
+   "label": "Nitrogen dioxide 6690 - Env. AC32M - procedure, 42M802 - Antwerpen",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1127,
+     "label": "42M802 - Antwerpen"
+    },
+    "geometry": {
+     "coordinates": [
+      4.424399006935333,
+      51.260989707467004,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 53.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 17.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6690",
+     "label": "6690 - Env. AC32M - procedure"
+    },
+    "feature": {
+     "id": "1127",
+     "label": "42M802 - Antwerpen"
+    },
+    "procedure": {
+     "id": "6690",
+     "label": "6690 - Env. AC32M - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6776",
+   "label": "Nitrogen dioxide 6776 - THIS 42C - procedure, 42R801 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1147,
+     "label": "42R801 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.431821046968845,
+      51.20966253090992,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 56.0
+   },
+   "lastValue": {
+    "timestamp": 1792389600000,
+    "value": 18.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6776",
+     "label": "6776 - THIS 42C - procedure"
+    },
+    "feature": {
+     "id": "1147",
+     "label": "42R801 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6776",
+     "label": "6776 - THIS 42C - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6924",
+   "label": "Nitrogen dioxide 6924 - ENVIRONNEMENT - procedure, 43N073 - Vezin",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1179,
+     "label": "43N073 - Vezin"
+    },
+    "geometry": {
+     "coordinates": [
+      4.9884229540925205,
+      50.502716341042564,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 39.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6924",
+     "label": "6924 - ENVIRONNEMENT - procedure"
+    },
+    "feature": {
+     "id": "1179",
+     "label": "43N073 - Vezin"
+    },
+    "procedure": {
+     "id": "6924",
+     "label": "6924 - ENVIRONNEMENT - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6961",
+   "label": "Nitrogen dioxide 6961 - ENVIRONNEMENT - procedure, 43N121 - Offagne",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1184,
+     "label": "43N121 - Offagne"
+    },
+    "geometry": {
+     "coordinates": [
+      5.202387466800063,
+      49.877128491329344,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 19.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 4.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6961",
+     "label": "6961 - ENVIRONNEMENT - procedure"
+    },
+    "feature": {
+     "id": "1184",
+     "label": "43N121 - Offagne"
+    },
+    "procedure": {
+     "id": "6961",
+     "label": "6961 - ENVIRONNEMENT - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6998",
+   "label": "Nitrogen dioxide 6998 - ISEO Argopol-SAM-XAIR - procedure, 43R222 - Liège (ISSeP)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1191,
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "geometry": {
+     "coordinates": [
+      5.570222814112581,
+      50.61341250148189,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 42.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 23.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6998",
+     "label": "6998 - ISEO Argopol-SAM-XAIR - procedure"
+    },
+    "feature": {
+     "id": "1191",
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "procedure": {
+     "id": "6998",
+     "label": "6998 - ISEO Argopol-SAM-XAIR - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7017",
+   "label": "Nitrogen dioxide 7017 - ML9841B MONITOR LABS - procedure, 43R240 - Engis",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1195,
+     "label": "43R240 - Engis"
+    },
+    "geometry": {
+     "coordinates": [
+      5.397446050127331,
+      50.58361434736863,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 44.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 17.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7017",
+     "label": "7017 - ML9841B MONITOR LABS - procedure"
+    },
+    "feature": {
+     "id": "1195",
+     "label": "43R240 - Engis"
+    },
+    "procedure": {
+     "id": "7017",
+     "label": "7017 - ML9841B MONITOR LABS - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7032",
+   "label": "Nitrogen dioxide 7032 - Env. AC32M - procedure, 44M705 - Roeselare",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1198,
+     "label": "44M705 - Roeselare"
+    },
+    "geometry": {
+     "coordinates": [
+      3.152401590470013,
+      50.94535924135039,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 44.0
+   },
+   "lastValue": {
+    "timestamp": 1792443600000,
+    "value": 20.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7032",
+     "label": "7032 - Env. AC32M - procedure"
+    },
+    "feature": {
+     "id": "1198",
+     "label": "44M705 - Roeselare"
+    },
+    "procedure": {
+     "id": "7032",
+     "label": "7032 - Env. AC32M - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7047",
+   "label": "Nitrogen dioxide 7047 - THIS 42C - procedure, 44N029 - Houtem",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1202,
+     "label": "44N029 - Houtem"
+    },
+    "geometry": {
+     "coordinates": [
+      2.582322781489744,
+      51.01628011113793,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 43.0
+   },
+   "lastValue": {
+    "timestamp": 1792443600000,
+    "value": 20.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7047",
+     "label": "7047 - THIS 42C - procedure"
+    },
+    "feature": {
+     "id": "1202",
+     "label": "44N029 - Houtem"
+    },
+    "procedure": {
+     "id": "7047",
+     "label": "7047 - THIS 42C - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7074",
+   "label": "Nitrogen dioxide 7074 - THIS 42C - procedure, 44R701 - Gent",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1207,
+     "label": "44R701 - Gent"
+    },
+    "geometry": {
+     "coordinates": [
+      3.7292537873641054,
+      51.05844833594854,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 50.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 19.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7074",
+     "label": "7074 - THIS 42C - procedure"
+    },
+    "feature": {
+     "id": "1207",
+     "label": "44R701 - Gent"
+    },
+    "procedure": {
+     "id": "7074",
+     "label": "7074 - THIS 42C - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7111",
+   "label": "Nitrogen dioxide 7111 - THIS 42C - procedure, 44R740 - Sint-Kruiswinkel",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1213,
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "geometry": {
+     "coordinates": [
+      3.808735430412745,
+      51.1501360900007,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 44.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7111",
+     "label": "7111 - THIS 42C - procedure"
+    },
+    "feature": {
+     "id": "1213",
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "procedure": {
+     "id": "7111",
+     "label": "7111 - THIS 42C - procedure"
+    },
+    "phenomenon": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    },
+    "category": {
+     "id": "8",
+     "label": "Nitrogen dioxide"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "76 - MAX NO2",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 NO2",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 NO2",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "45.0",
+     "upper": "50.0",
+     "name": "46 - 50 NO2",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "40.0",
+     "upper": "45.0",
+     "name": "41 - 45 NO2",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 NO2",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 NO2",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 NO2",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 NO2",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 NO2",
+     "color": "#0000FF"
+    }
+   ]
+  }
+ ],
+ "5": [
+  {
+   "id": "10762",
+   "label": "Particulate Matter < 10 µm 10762 - FIDAS 200 - procedure, 42R804 - Antwerpen (Ring)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1723,
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "geometry": {
+     "coordinates": [
+      4.441947090848597,
+      51.206303948654636,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1509411600000,
+    "value": 24.2
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 16.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "10762",
+     "label": "10762 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1723",
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "procedure": {
+     "id": "10762",
+     "label": "10762 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6152",
+   "label": "Particulate Matter < 10 µm 6152 - DAILY CORRECTION TEOM - procedure, 40AL01 - Linkeroever",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1030,
+     "label": "40AL01 - Linkeroever"
+    },
+    "geometry": {
+     "coordinates": [
+      4.385223684454721,
+      51.23619419990238,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 10.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 17.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6152",
+     "label": "6152 - DAILY CORRECTION TEOM - procedure"
+    },
+    "feature": {
+     "id": "1030",
+     "label": "40AL01 - Linkeroever"
+    },
+    "procedure": {
+     "id": "6152",
+     "label": "6152 - DAILY CORRECTION TEOM - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6578",
+   "label": "Particulate Matter < 10 µm 6578 - TEOM FDMS - procedure, 41R001 - Molenbeek-Saint-Jean",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1118,
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "geometry": {
+     "coordinates": [
+      4.333819707712016,
+      50.84966548806797,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346202000000,
+    "value": 23.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 27.587
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6578",
+     "label": "6578 - TEOM FDMS - procedure"
+    },
+    "feature": {
+     "id": "1118",
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "procedure": {
+     "id": "6578",
+     "label": "6578 - TEOM FDMS - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6626",
+   "label": "Particulate Matter < 10 µm 6626 - PM10 FDMS - procedure, 41R012 - Uccle",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1122,
+     "label": "41R012 - Uccle"
+    },
+    "geometry": {
+     "coordinates": [
+      4.358538856351678,
+      50.796631638497885,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346202000000,
+    "value": 12.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 24.046
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6626",
+     "label": "6626 - PM10 FDMS - procedure"
+    },
+    "feature": {
+     "id": "1122",
+     "label": "41R012 - Uccle"
+    },
+    "procedure": {
+     "id": "6626",
+     "label": "6626 - PM10 FDMS - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6693",
+   "label": "Particulate Matter < 10 µm 6693 - FIDAS 200 - procedure, 42M802 - Antwerpen",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1127,
+     "label": "42M802 - Antwerpen"
+    },
+    "geometry": {
+     "coordinates": [
+      4.424399006935333,
+      51.260989707467004,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 21.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 21.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6693",
+     "label": "6693 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1127",
+     "label": "42M802 - Antwerpen"
+    },
+    "procedure": {
+     "id": "6693",
+     "label": "6693 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6786",
+   "label": "Particulate Matter < 10 µm 6786 - FIDAS 200 - procedure, 42R801 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1147,
+     "label": "42R801 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.431821046968845,
+      51.20966253090992,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 38.125
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 17.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6786",
+     "label": "6786 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1147",
+     "label": "42R801 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6786",
+     "label": "6786 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6788",
+   "label": "Particulate Matter < 10 µm 6788 - FIDAS 200 - procedure, 42R802 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1148,
+     "label": "42R802 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.4317922307924436,
+      51.2095187315834,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 38.75
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 18.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6788",
+     "label": "6788 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1148",
+     "label": "42R802 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6788",
+     "label": "6788 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6926",
+   "label": "Particulate Matter < 10 µm 6926 - GRIMM - procedure, 43N073 - Vezin",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1179,
+     "label": "43N073 - Vezin"
+    },
+    "geometry": {
+     "coordinates": [
+      4.9884229540925205,
+      50.502716341042564,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 1.771
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 27.271
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6926",
+     "label": "6926 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1179",
+     "label": "43N073 - Vezin"
+    },
+    "procedure": {
+     "id": "6926",
+     "label": "6926 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6963",
+   "label": "Particulate Matter < 10 µm 6963 - GRIMM - procedure, 43N121 - Offagne",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1184,
+     "label": "43N121 - Offagne"
+    },
+    "geometry": {
+     "coordinates": [
+      5.202387466800063,
+      49.877128491329344,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 2.771
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 15.771
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6963",
+     "label": "6963 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1184",
+     "label": "43N121 - Offagne"
+    },
+    "procedure": {
+     "id": "6963",
+     "label": "6963 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7000",
+   "label": "Particulate Matter < 10 µm 7000 - GRIMM - procedure, 43R222 - Liège (ISSeP)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1191,
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "geometry": {
+     "coordinates": [
+      5.570222814112581,
+      50.61341250148189,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 12.271
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 26.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7000",
+     "label": "7000 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1191",
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "procedure": {
+     "id": "7000",
+     "label": "7000 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7021",
+   "label": "Particulate Matter < 10 µm 7021 - GRIMM - procedure, 43R240 - Engis",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1195,
+     "label": "43R240 - Engis"
+    },
+    "geometry": {
+     "coordinates": [
+      5.397446050127331,
+      50.58361434736863,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 7.271
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 28.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7021",
+     "label": "7021 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1195",
+     "label": "43R240 - Engis"
+    },
+    "procedure": {
+     "id": "7021",
+     "label": "7021 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7034",
+   "label": "Particulate Matter < 10 µm 7034 - FIDAS 200 - procedure, 44M705 - Roeselare",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1198,
+     "label": "44M705 - Roeselare"
+    },
+    "geometry": {
+     "coordinates": [
+      3.152401590470013,
+      50.94535924135039,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338685200000,
+    "value": 15.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 31.3
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7034",
+     "label": "7034 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1198",
+     "label": "44M705 - Roeselare"
+    },
+    "procedure": {
+     "id": "7034",
+     "label": "7034 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7054",
+   "label": "Particulate Matter < 10 µm 7054 - FIDAS 200 - procedure, 44N029 - Houtem",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1202,
+     "label": "44N029 - Houtem"
+    },
+    "geometry": {
+     "coordinates": [
+      2.582322781489744,
+      51.01628011113793,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 17.5
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 30.3
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7054",
+     "label": "7054 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1202",
+     "label": "44N029 - Houtem"
+    },
+    "procedure": {
+     "id": "7054",
+     "label": "7054 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7086",
+   "label": "Particulate Matter < 10 µm 7086 - FIDAS 200 - procedure, 44R701 - Gent",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1207,
+     "label": "44R701 - Gent"
+    },
+    "geometry": {
+     "coordinates": [
+      3.7292537873641054,
+      51.05844833594854,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 50.625
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 28.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7086",
+     "label": "7086 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1207",
+     "label": "44R701 - Gent"
+    },
+    "procedure": {
+     "id": "7086",
+     "label": "7086 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7117",
+   "label": "Particulate Matter < 10 µm 7117 - FIDAS 200 - procedure, 44R740 - Sint-Kruiswinkel",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1213,
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "geometry": {
+     "coordinates": [
+      3.808735430412745,
+      51.1501360900007,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 53.125
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 25.8
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7117",
+     "label": "7117 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1213",
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "procedure": {
+     "id": "7117",
+     "label": "7117 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    },
+    "category": {
+     "id": "5",
+     "label": "Particulate Matter < 10 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "100.0",
+     "upper": "10000.0",
+     "name": "101 - MAX PM10",
+     "color": "#990099"
+    },
+    {
+     "lower": "80.0",
+     "upper": "100.0",
+     "name": "81 - 100 PM10",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "70.0",
+     "upper": "80.0",
+     "name": "71 - 80 PM10",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "60.0",
+     "upper": "70.0",
+     "name": "61 - 70 PM10",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM10",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "40.0",
+     "upper": "50.0",
+     "name": "41 - 50 PM10",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "30.0",
+     "upper": "40.0",
+     "name": "31 - 40 PM10",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "20.0",
+     "upper": "30.0",
+     "name": "21 - 30 PM10",
+     "color": "#009900"
+    },
+    {
+     "lower": "10.0",
+     "upper": "20.0",
+     "name": "11 - 20 PM10",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "10.0",
+     "name": "0 - 10 PM10",
+     "color": "#0000FF"
+    }
+   ]
+  }
+ ],
+ "6001": [
+  {
+   "id": "100008",
+   "label": "Particulate Matter < 2.5 µm 100008 - Unknown device - procedure, 40AL01 - Linkeroever",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1030,
+     "label": "40AL01 - Linkeroever"
+    },
+    "geometry": {
+     "coordinates": [
+      4.385223684454721,
+      51.23619419990238,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1422493200000,
+    "value": 7.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.657
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "100008",
+     "label": "100008 - Unknown device - procedure"
+    },
+    "feature": {
+     "id": "1030",
+     "label": "40AL01 - Linkeroever"
+    },
+    "procedure": {
+     "id": "100008",
+     "label": "100008 - Unknown device - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "10752",
+   "label": "Particulate Matter < 2.5 µm 10752 - FIDAS 200 - procedure, 44R740 - Sint-Kruiswinkel",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1213,
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "geometry": {
+     "coordinates": [
+      3.808735430412745,
+      51.1501360900007,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1702652400000,
+    "value": 9.4
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 18.134
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "10752",
+     "label": "10752 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1213",
+     "label": "44R740 - Sint-Kruiswinkel"
+    },
+    "procedure": {
+     "id": "10752",
+     "label": "10752 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "10763",
+   "label": "Particulate Matter < 2.5 µm 10763 - FIDAS 200 - procedure, 42R804 - Antwerpen (Ring)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1723,
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "geometry": {
+     "coordinates": [
+      4.441947090848597,
+      51.206303948654636,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1509411600000,
+    "value": 13.485
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.226
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "10763",
+     "label": "10763 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1723",
+     "label": "42R804 - Antwerpen (Ring)"
+    },
+    "procedure": {
+     "id": "10763",
+     "label": "10763 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6579",
+   "label": "Particulate Matter < 2.5 µm 6579 - TEOM FDMS - procedure, 41R001 - Molenbeek-Saint-Jean",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1118,
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "geometry": {
+     "coordinates": [
+      4.333819707712016,
+      50.84966548806797,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346202000000,
+    "value": 20.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 20.969
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6579",
+     "label": "6579 - TEOM FDMS - procedure"
+    },
+    "feature": {
+     "id": "1118",
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "procedure": {
+     "id": "6579",
+     "label": "6579 - TEOM FDMS - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6627",
+   "label": "Particulate Matter < 2.5 µm 6627 - TEOM FDMS - procedure, 41R012 - Uccle",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1122,
+     "label": "41R012 - Uccle"
+    },
+    "geometry": {
+     "coordinates": [
+      4.358538856351678,
+      50.796631638497885,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346202000000,
+    "value": 7.9
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 18.404
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6627",
+     "label": "6627 - TEOM FDMS - procedure"
+    },
+    "feature": {
+     "id": "1122",
+     "label": "41R012 - Uccle"
+    },
+    "procedure": {
+     "id": "6627",
+     "label": "6627 - TEOM FDMS - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6787",
+   "label": "Particulate Matter < 2.5 µm 6787 - FIDAS 200 - procedure, 42R801 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1147,
+     "label": "42R801 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.431821046968845,
+      51.20966253090992,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 56.73
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.657
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6787",
+     "label": "6787 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1147",
+     "label": "42R801 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6787",
+     "label": "6787 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6789",
+   "label": "Particulate Matter < 2.5 µm 6789 - FIDAS 200 - procedure, 42R802 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1148,
+     "label": "42R802 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.4317922307924436,
+      51.2095187315834,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 53.01
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 12.521
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6789",
+     "label": "6789 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1148",
+     "label": "42R802 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6789",
+     "label": "6789 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6927",
+   "label": "Particulate Matter < 2.5 µm 6927 - GRIMM - procedure, 43N073 - Vezin",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1179,
+     "label": "43N073 - Vezin"
+    },
+    "geometry": {
+     "coordinates": [
+      4.9884229540925205,
+      50.502716341042564,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": -0.731
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 20.059
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6927",
+     "label": "6927 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1179",
+     "label": "43N073 - Vezin"
+    },
+    "procedure": {
+     "id": "6927",
+     "label": "6927 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6964",
+   "label": "Particulate Matter < 2.5 µm 6964 - GRIMM - procedure, 43N121 - Offagne",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1184,
+     "label": "43N121 - Offagne"
+    },
+    "geometry": {
+     "coordinates": [
+      5.202387466800063,
+      49.877128491329344,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 0.719
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.839
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6964",
+     "label": "6964 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1184",
+     "label": "43N121 - Offagne"
+    },
+    "procedure": {
+     "id": "6964",
+     "label": "6964 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7001",
+   "label": "Particulate Matter < 2.5 µm 7001 - GRIMM - procedure, 43R222 - Liège (ISSeP)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1191,
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "geometry": {
+     "coordinates": [
+      5.570222814112581,
+      50.61341250148189,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 7.488
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 22.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7001",
+     "label": "7001 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1191",
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "procedure": {
+     "id": "7001",
+     "label": "7001 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7022",
+   "label": "Particulate Matter < 2.5 µm 7022 - GRIMM - procedure, 43R240 - Engis",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1195,
+     "label": "43R240 - Engis"
+    },
+    "geometry": {
+     "coordinates": [
+      5.397446050127331,
+      50.58361434736863,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1346374800000,
+    "value": 3.136
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 23.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7022",
+     "label": "7022 - GRIMM - procedure"
+    },
+    "feature": {
+     "id": "1195",
+     "label": "43R240 - Engis"
+    },
+    "procedure": {
+     "id": "7022",
+     "label": "7022 - GRIMM - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7055",
+   "label": "Particulate Matter < 2.5 µm 7055 - FIDAS 200 - procedure, 44N029 - Houtem",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1202,
+     "label": "44N029 - Houtem"
+    },
+    "geometry": {
+     "coordinates": [
+      2.582322781489744,
+      51.01628011113793,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 9.525
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 21.156
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7055",
+     "label": "7055 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1202",
+     "label": "44N029 - Houtem"
+    },
+    "procedure": {
+     "id": "7055",
+     "label": "7055 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7087",
+   "label": "Particulate Matter < 2.5 µm 7087 - FIDAS 200 - procedure, 44R701 - Gent",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1207,
+     "label": "44R701 - Gent"
+    },
+    "geometry": {
+     "coordinates": [
+      3.7292537873641054,
+      51.05844833594854,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1338426000000,
+    "value": 36.27
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 19.86
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7087",
+     "label": "7087 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1207",
+     "label": "44R701 - Gent"
+    },
+    "procedure": {
+     "id": "7087",
+     "label": "7087 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "99994",
+   "label": "Particulate Matter < 2.5 µm 99994 - FIDAS 200 - procedure, 42M802 - Antwerpen",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1127,
+     "label": "42M802 - Antwerpen"
+    },
+    "geometry": {
+     "coordinates": [
+      4.424399006935333,
+      51.260989707467004,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1414976400000,
+    "value": 1.5
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 15.111
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "99994",
+     "label": "99994 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1127",
+     "label": "42M802 - Antwerpen"
+    },
+    "procedure": {
+     "id": "99994",
+     "label": "99994 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "99996",
+   "label": "Particulate Matter < 2.5 µm 99996 - FIDAS 200 - procedure, 44M705 - Roeselare",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1198,
+     "label": "44M705 - Roeselare"
+    },
+    "geometry": {
+     "coordinates": [
+      3.152401590470013,
+      50.94535924135039,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1414976400000,
+    "value": 2.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 23.314
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "99996",
+     "label": "99996 - FIDAS 200 - procedure"
+    },
+    "feature": {
+     "id": "1198",
+     "label": "44M705 - Roeselare"
+    },
+    "procedure": {
+     "id": "99996",
+     "label": "99996 - FIDAS 200 - procedure"
+    },
+    "phenomenon": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    },
+    "category": {
+     "id": "6001",
+     "label": "Particulate Matter < 2.5 µm"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "75.0",
+     "upper": "10000.0",
+     "name": "75 - MAX PM2.5",
+     "color": "#990099"
+    },
+    {
+     "lower": "60.0",
+     "upper": "75.0",
+     "name": "61 - 75 PM2.5",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "50.0",
+     "upper": "60.0",
+     "name": "51 - 60 PM2.5",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "35.0",
+     "upper": "50.0",
+     "name": "36 - 50 PM2.5",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "20.0",
+     "upper": "35.0",
+     "name": "21 - 35 PM2.5",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "15.0",
+     "upper": "20.0",
+     "name": "16 - 20 PM2.5",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "10.0",
+     "upper": "15.0",
+     "name": "11 - 15 PM2.5",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "7.5",
+     "upper": "10.0",
+     "name": "7.6 - 10 PM2.5",
+     "color": "#009900"
+    },
+    {
+     "lower": "3.5",
+     "upper": "7.5",
+     "name": "3.6 - 7.5 PM2.5",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "3.5",
+     "name": "0 - 3.5 PM2.5",
+     "color": "#0000FF"
+    }
+   ]
+  }
+ ],
+ "7": [
+  {
+   "id": "6577",
+   "label": "Ozone 6577 - O3-41M (Environnement) - procedure, 41R001 - Molenbeek-Saint-Jean",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1118,
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "geometry": {
+     "coordinates": [
+      4.333819707712016,
+      50.84966548806797,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 2.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 11.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6577",
+     "label": "6577 - O3-41M (Environnement) - procedure"
+    },
+    "feature": {
+     "id": "1118",
+     "label": "41R001 - Molenbeek-Saint-Jean"
+    },
+    "procedure": {
+     "id": "6577",
+     "label": "6577 - O3-41M (Environnement) - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6625",
+   "label": "Ozone 6625 - O3-41M (Environnement) sedert 19 - procedure, 41R012 - Uccle",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1122,
+     "label": "41R012 - Uccle"
+    },
+    "geometry": {
+     "coordinates": [
+      4.358538856351678,
+      50.796631638497885,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293847200000,
+    "value": 2.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 20.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6625",
+     "label": "6625 - O3-41M (Environnement) sedert 19 - procedure"
+    },
+    "feature": {
+     "id": "1122",
+     "label": "41R012 - Uccle"
+    },
+    "procedure": {
+     "id": "6625",
+     "label": "6625 - O3-41M (Environnement) sedert 19 - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6778",
+   "label": "Ozone 6778 - Mon. Labs9812 tot 20041014, nu API400E - procedure, 42R801 - Borgerhout",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1147,
+     "label": "42R801 - Borgerhout"
+    },
+    "geometry": {
+     "coordinates": [
+      4.431821046968845,
+      51.20966253090992,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 1.0
+   },
+   "lastValue": {
+    "timestamp": 1792386000000,
+    "value": 7.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6778",
+     "label": "6778 - Mon. Labs9812 tot 20041014, nu API400E - procedure"
+    },
+    "feature": {
+     "id": "1147",
+     "label": "42R801 - Borgerhout"
+    },
+    "procedure": {
+     "id": "6778",
+     "label": "6778 - Mon. Labs9812 tot 20041014, nu API400E - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6925",
+   "label": "Ozone 6925 - O341M - ENVIRONNEMENT - procedure, 43N073 - Vezin",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1179,
+     "label": "43N073 - Vezin"
+    },
+    "geometry": {
+     "coordinates": [
+      4.9884229540925205,
+      50.502716341042564,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 2.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 20.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6925",
+     "label": "6925 - O341M - ENVIRONNEMENT - procedure"
+    },
+    "feature": {
+     "id": "1179",
+     "label": "43N073 - Vezin"
+    },
+    "procedure": {
+     "id": "6925",
+     "label": "6925 - O341M - ENVIRONNEMENT - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6962",
+   "label": "Ozone 6962 - API 400 - procedure, 43N121 - Offagne",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1184,
+     "label": "43N121 - Offagne"
+    },
+    "geometry": {
+     "coordinates": [
+      5.202387466800063,
+      49.877128491329344,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 12.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 39.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6962",
+     "label": "6962 - API 400 - procedure"
+    },
+    "feature": {
+     "id": "1184",
+     "label": "43N121 - Offagne"
+    },
+    "procedure": {
+     "id": "6962",
+     "label": "6962 - API 400 - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "6999",
+   "label": "Ozone 6999 - ISEO Argopol-SAM-XAIR - procedure, 43R222 - Liège (ISSeP)",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1191,
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "geometry": {
+     "coordinates": [
+      5.570222814112581,
+      50.61341250148189,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 0.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 18.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "6999",
+     "label": "6999 - ISEO Argopol-SAM-XAIR - procedure"
+    },
+    "feature": {
+     "id": "1191",
+     "label": "43R222 - Liège (ISSeP)"
+    },
+    "procedure": {
+     "id": "6999",
+     "label": "6999 - ISEO Argopol-SAM-XAIR - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7020",
+   "label": "Ozone 7020 - O341M - ENVIRONNEMENT - procedure, 43R240 - Engis",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1195,
+     "label": "43R240 - Engis"
+    },
+    "geometry": {
+     "coordinates": [
+      5.397446050127331,
+      50.58361434736863,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 3.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 6.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7020",
+     "label": "7020 - O341M - ENVIRONNEMENT - procedure"
+    },
+    "feature": {
+     "id": "1195",
+     "label": "43R240 - Engis"
+    },
+    "procedure": {
+     "id": "7020",
+     "label": "7020 - O341M - ENVIRONNEMENT - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7033",
+   "label": "Ozone 7033 - Env.O341M tot 20041205, nu API400E - procedure, 44M705 - Roeselare",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1198,
+     "label": "44M705 - Roeselare"
+    },
+    "geometry": {
+     "coordinates": [
+      3.152401590470013,
+      50.94535924135039,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 1.0
+   },
+   "lastValue": {
+    "timestamp": 1792411200000,
+    "value": 15.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7033",
+     "label": "7033 - Env.O341M tot 20041205, nu API400E - procedure"
+    },
+    "feature": {
+     "id": "1198",
+     "label": "44M705 - Roeselare"
+    },
+    "procedure": {
+     "id": "7033",
+     "label": "7033 - Env.O341M tot 20041205, nu API400E - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7048",
+   "label": "Ozone 7048 - Mon. Labs9812 tot 20041206, nu API400E - procedure, 44N029 - Houtem",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1202,
+     "label": "44N029 - Houtem"
+    },
+    "geometry": {
+     "coordinates": [
+      2.582322781489744,
+      51.01628011113793,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 1.0
+   },
+   "lastValue": {
+    "timestamp": 1792443600000,
+    "value": 6.0
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7048",
+     "label": "7048 - Mon. Labs9812 tot 20041206, nu API400E - procedure"
+    },
+    "feature": {
+     "id": "1202",
+     "label": "44N029 - Houtem"
+    },
+    "procedure": {
+     "id": "7048",
+     "label": "7048 - Mon. Labs9812 tot 20041206, nu API400E - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  },
+  {
+   "id": "7078",
+   "label": "Ozone 7078 - Env. O341M tot 20041114, nu API400E - procedure, 44R701 - Gent",
+   "extras": [
+    "license",
+    "statusIntervals"
+   ],
+   "uom": "µg/m³",
+   "station": {
+    "properties": {
+     "id": 1207,
+     "label": "44R701 - Gent"
+    },
+    "geometry": {
+     "coordinates": [
+      3.7292537873641054,
+      51.05844833594854,
+      "NaN"
+     ],
+     "type": "Point"
+    },
+    "type": "Feature"
+   },
+   "referenceValues": [],
+   "firstValue": {
+    "timestamp": 1293843600000,
+    "value": 1.0
+   },
+   "lastValue": {
+    "timestamp": 1792447200000,
+    "value": 20.5
+   },
+   "parameters": {
+    "service": {
+     "id": "1",
+     "label": "IRCEL - CELINE: timeseries-api (SOS 2.0)"
+    },
+    "offering": {
+     "id": "7078",
+     "label": "7078 - Env. O341M tot 20041114, nu API400E - procedure"
+    },
+    "feature": {
+     "id": "1207",
+     "label": "44R701 - Gent"
+    },
+    "procedure": {
+     "id": "7078",
+     "label": "7078 - Env. O341M tot 20041114, nu API400E - procedure"
+    },
+    "phenomenon": {
+     "id": "7",
+     "label": "Ozone"
+    },
+    "category": {
+     "id": "7",
+     "label": "Ozone"
+    }
+   },
+   "statusIntervals": [
+    {
+     "lower": "320.0",
+     "upper": "10000.0",
+     "name": "321 - MAX O3",
+     "color": "#990099"
+    },
+    {
+     "lower": "280.0",
+     "upper": "320.0",
+     "name": "281 - 320 O3",
+     "color": "#CC0000"
+    },
+    {
+     "lower": "240.0",
+     "upper": "280.0",
+     "name": "241 - 280 O3",
+     "color": "#FF0000"
+    },
+    {
+     "lower": "180.0",
+     "upper": "240.0",
+     "name": "181 - 240 O3",
+     "color": "#FF6600"
+    },
+    {
+     "lower": "160.0",
+     "upper": "180.0",
+     "name": "161 - 180 O3",
+     "color": "#FFBB00"
+    },
+    {
+     "lower": "120.0",
+     "upper": "160.0",
+     "name": "121 - 160 O3",
+     "color": "#FFFF00"
+    },
+    {
+     "lower": "70.0",
+     "upper": "120.0",
+     "name": "71 - 120 O3",
+     "color": "#00FF00"
+    },
+    {
+     "lower": "50.0",
+     "upper": "70.0",
+     "name": "51 - 70 O3",
+     "color": "#009900"
+    },
+    {
+     "lower": "25.0",
+     "upper": "50.0",
+     "name": "26 - 50 O3",
+     "color": "#0099FF"
+    },
+    {
+     "lower": "-10.0",
+     "upper": "25.0",
+     "name": "0 - 25 O3",
+     "color": "#0000FF"
+    }
+   ]
+  }
+ ]
+}
