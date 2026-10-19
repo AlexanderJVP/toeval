@@ -509,3 +509,21 @@ def test_a_swap_failing_halfway_restores_every_old_output(
     assert query(con, settings, "mart_energy_15min", measured) == [(1.0,)]
     assert not list(settings.data_path.rglob("*.tmp"))
     assert not list(settings.data_path.rglob("*.bak"))
+
+
+def test_a_subject_without_a_limit_warns_but_never_blocks_the_rebuild(
+    settings: Settings, store: StateStore, raw: Raw
+) -> None:
+    # E.g. a new source's quality SQL names a subject that isn't one of its streams.
+    day1 = DAY0 + timedelta(days=1)
+    raw.all_streams(DAY0, day1, constant(1.0), at=day1)
+    limits = default_limits()
+    limits["freshness"] = {}
+
+    result = run(settings, store, day1, limits=limits)
+
+    assert "mart_energy_hourly" in result.built
+    q = quality(result, "freshness", "elia/load")
+    assert not q.ok
+    assert q.details.startswith("no limit for this subject")
+    assert quality(result, "duplicate_keys", "elia/load").ok

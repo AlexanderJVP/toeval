@@ -97,13 +97,11 @@ class Check:
     inputs: tuple[str, ...]
     max_ok: float | None = 0  # value <= max_ok is ok, otherwise a warning
 
-    def limit(self, subject: str, limits: Limits) -> float:
+    def limit(self, subject: str, limits: Limits) -> float | None:
+        """None: no limit is known for this subject (its SQL and stream names disagree)."""
         if self.max_ok is not None:
             return self.max_ok
-        try:
-            return limits[self.name][subject]
-        except KeyError:
-            raise KeyError(f"quality {self.name}: no limit for subject {subject!r}") from None
+        return limits.get(self.name, {}).get(subject)
 
 
 _ELIA_STG = ("stg_elia_load", "stg_elia_wind", "stg_elia_solar")
@@ -341,18 +339,26 @@ def _run_check(
 ) -> list[QualityResult]:
     query = (SQL / "quality" / check.source / f"{check.name}.sql").read_text(encoding="utf-8")
     rows = con.execute(f"SELECT subject, value, details FROM ({query})").fetchall()
-    return [
-        QualityResult(
-            checked_at=now,
-            check=check.name,
-            subject=subject,
-            value=None if value is None else float(value),
-            unit=check.unit,
-            ok=value is not None and value <= check.limit(subject, limits),
-            details=details or "",
+    results = []
+    for subject, value, details in rows:
+        limit = check.limit(subject, limits)
+        if limit is None:
+            # A bug, not a data problem, but checks never block the warehouse (ADR 0006): warn.
+            log.error("quality %s: no limit for subject %r (not a <source>/<stream>?)",
+                      check.name, subject)  # fmt: skip
+            details = f"no limit for this subject; {details or ''}"
+        results.append(
+            QualityResult(
+                checked_at=now,
+                check=check.name,
+                subject=subject,
+                value=None if value is None else float(value),
+                unit=check.unit,
+                ok=limit is not None and value is not None and value <= limit,
+                details=details or "",
+            )
         )
-        for subject, value, details in rows
-    ]
+    return results
 
 
 def _output_path(settings: Settings, model: Model) -> Path:
