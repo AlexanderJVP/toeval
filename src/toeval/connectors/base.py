@@ -11,6 +11,7 @@ gates, run logging and the all-or-nothing state commit) lives in `Connector.run`
 """
 
 import logging
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -24,6 +25,7 @@ import pyarrow as pa
 from toeval.config import Settings
 from toeval.connectors.http import HttpClient
 from toeval.connectors.spec import SourceSpec, StreamSpec
+from toeval.events import NULL_SINK, EventSink
 from toeval.state import RunStats, StateStore, StreamState, Watermark
 from toeval.warehouse.raw import RawWriter
 
@@ -102,6 +104,7 @@ class Connector(ABC):
         transport: httpx.BaseTransport | None = None,
         clock: Clock = _utcnow,
         http_options: Mapping[str, Any] | None = None,
+        events: EventSink = NULL_SINK,
     ) -> None:
         self.settings = settings
         self.store = store
@@ -110,6 +113,7 @@ class Connector(ABC):
         self._transport = transport
         self._clock = clock
         self._http_options = dict(http_options or {})  # test hooks: sleep, clock, rng, environ
+        self._events = events
 
     # -- source-specific steps ----------------------------------------------------------------
 
@@ -164,6 +168,15 @@ class Connector(ABC):
             ", deep re-fetch" if deep else "",
         )
 
+        started = time.monotonic()
+        ids = {"run": run_id, "source": self.source.name, "stream": stream.name}
+        self._events.emit(
+            "run_started",
+            **ids,
+            mode=mode.value,
+            deep=deep,
+            watermark=before.serialize() if before else None,
+        )
         stats = _MutableStats()
         validators = {k: dict(v) for k, v in state.http_validators.items()}
         http: HttpClient | None = None
@@ -178,15 +191,23 @@ class Connector(ABC):
                 **self._http_options,
             )
             watermark = before
-            for request in self.plan(stream, state, ctx):
+            requests = self.plan(stream, state, ctx)
+            self._events.emit("planned", **ids, requests=len(requests))
+            for index, request in enumerate(requests, 1):
+                progress = {**ids, "key": request.key, "index": index, "total": len(requests)}
+                self._events.emit("request_started", **progress)
                 result = self.fetch(stream, request, http)
                 if result.table is None:
                     stats.not_modified += 1
+                    self._events.emit("request_done", **progress, rows=0, outcome="not_modified")
                     continue
                 table = result.table
                 stats.rows_fetched += table.num_rows
                 failures = _generic_checks(stream, table) + self.validate(stream, table)
                 if failures:
+                    self._events.emit(
+                        "request_done", **progress, rows=table.num_rows, outcome="quarantined"
+                    )
                     path = self._raw.quarantine(
                         self.source.name,
                         stream.name,
@@ -207,13 +228,20 @@ class Connector(ABC):
                     ingested_at=now,
                 )
                 stats.files_written += written is not None
+                self._events.emit(
+                    "request_done",
+                    **progress,
+                    rows=table.num_rows,
+                    outcome="written" if written else "unchanged",
+                    file=written.path if written else None,
+                )
                 if table.num_rows:
                     watermark = _max_watermark(
                         watermark, self.next_watermark(stream, watermark, table)
                     )
         except BaseException as exc:
             stats.requests = http.requests_sent if http else 0
-            return self._fail(stream, run_id, stats, before, exc)
+            return self._fail(stream, run_id, stats, before, exc, started=started)
         finally:
             if http is not None:
                 http.close()
@@ -235,7 +263,9 @@ class Connector(ABC):
         try:
             self.store.finish_run_success(run_id, new_state, stats.freeze(), self._clock(), before)
         except BaseException as exc:  # the store rolled back; record the run as failed instead
-            return self._fail(stream, run_id, stats, before, exc, "state commit failed: ")
+            return self._fail(
+                stream, run_id, stats, before, exc, "state commit failed: ", started=started
+            )
         log.info(
             "%s/%s: run %s ok: %d requests (%d not modified), %d rows, %d files, watermark %s",
             self.source.name,
@@ -247,6 +277,7 @@ class Connector(ABC):
             stats.files_written,
             watermark.serialize() if watermark else "none",
         )
+        self._finished(stream, run_id, stats, started, "success", watermark=watermark)
         return StreamRunResult(
             self.source.name, stream.name, run_id, True, stats.freeze(), before, watermark
         )
@@ -259,15 +290,42 @@ class Connector(ABC):
         before: Watermark | None,
         exc: BaseException,
         prefix: str = "",
+        *,
+        started: float,
     ) -> StreamRunResult:
         """Mark the run failed. KeyboardInterrupt / SystemExit are recorded, then re-raised."""
         error = f"{prefix}{type(exc).__name__}: {exc}"
         log.exception("%s/%s: run %s failed", self.source.name, stream.name, run_id[:8])
         self.store.finish_run_failed(run_id, stats.freeze(), self._clock(), before, error)
+        self._finished(stream, run_id, stats, started, "failed", watermark=before, error=error)
         if not isinstance(exc, Exception):
             raise exc
         return StreamRunResult(
             self.source.name, stream.name, run_id, False, stats.freeze(), before, before, error
+        )
+
+    def _finished(
+        self,
+        stream: StreamSpec,
+        run_id: str,
+        stats: "_MutableStats",
+        started: float,
+        status: str,
+        *,
+        watermark: Watermark | None,
+        error: str | None = None,
+    ) -> None:
+        self._events.emit(
+            "run_finished",
+            run=run_id,
+            source=self.source.name,
+            stream=stream.name,
+            status=status,
+            rows=stats.rows_fetched,
+            files=stats.files_written,
+            duration_s=round(time.monotonic() - started, 1),
+            watermark=watermark.serialize() if watermark else None,
+            error=error,
         )
 
     @staticmethod

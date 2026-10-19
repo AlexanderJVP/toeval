@@ -35,6 +35,18 @@
     <div id="banner" class="banner" hidden></div>
 
     <section>
+      <h2>Data flow <span id="flow-state" class="muted small"></span></h2>
+      <div class="live">
+        <div class="flow-wrap"><svg id="flow" viewBox="0 0 900 260" role="img" aria-label="Streams flowing into the raw, staging and marts layers"></svg></div>
+        <div class="feed-wrap">
+          <div class="feed-head">Live feed</div>
+          <ol class="feed" id="feed"></ol>
+          <p class="empty" id="feed-empty">No events yet. They appear as soon as a run starts.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <h2>Streams</h2>
       <div class="streams" id="streams"></div>
     </section>
@@ -64,9 +76,10 @@
   </main>
 
   <footer class="muted small">
-    Read-only view of <code id="data-dir"></code>. Times in Brussels time. Refreshes every few seconds.
+    Read-only view of <code id="data-dir"></code>. Times in Brussels time. Status refreshes every few seconds, the live feed every second.
   </footer>
 
   <script src="/static/app.js"></script>
+  <script src="/static/flow.js"></script>
 </body>
 </html>

@@ -199,3 +199,21 @@ def test_status_on_a_state_db_that_is_not_migrated_yet(data_dir: Path) -> None:
 
     assert result.exit_code == 0, result.output
     assert "next run" in result.output
+
+
+def test_runs_write_progress_events_for_the_console(data_dir: Path) -> None:
+    from toeval.events import read_events
+
+    runner.invoke(app, ["ingest", "live"])
+    runner.invoke(app, ["ingest", "series"])
+    events, cursor = read_events(data_dir / "state" / "events.jsonl", None, tail=1000)
+    types = [e["type"] for e in events]
+
+    assert types[0] == "run_started"
+    assert types.count("idle") == 2  # one per process
+    assert "request_done" in types
+    assert "transform_finished" in types
+    assert types[-1] == "idle"  # emitted after the state DB was closed
+
+    runner.invoke(app, ["run-due"])  # nothing due (live polls every 5 min): silent
+    assert read_events(data_dir / "state" / "events.jsonl", cursor)[0] == []

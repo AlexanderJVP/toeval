@@ -21,6 +21,7 @@ from pathlib import Path
 import duckdb
 
 from toeval.config import Settings
+from toeval.events import NULL_SINK, EventSink
 from toeval.state import QualityResult, StateStore
 
 log = logging.getLogger(__name__)
@@ -118,6 +119,7 @@ def transform(
     *,
     now: datetime,
     revision_window: timedelta = timedelta(days=14),
+    events: EventSink = NULL_SINK,
 ) -> TransformResult:
     """Rebuild every model, run the checks, and record the attempt in `transforms`.
 
@@ -127,16 +129,31 @@ def transform(
     """
     started = time.monotonic()
     transform_id = store.start_transform(now)
+    events.emit("transform_started", models=len(MODELS))
     built: list[str] = []
     try:
-        result = _transform(settings, store, now, revision_window, built)
+        result = _transform(settings, store, now, revision_window, built, events)
     except BaseException as exc:
-        store.finish_transform(
-            transform_id, now, models_built=0, error=f"{type(exc).__name__}: {exc}"
+        error = f"{type(exc).__name__}: {exc}"
+        store.finish_transform(transform_id, now, models_built=0, error=error)
+        events.emit(
+            "transform_finished",
+            status="failed",
+            duration_s=round(time.monotonic() - started, 1),
+            error=error,
         )
         raise
     store.finish_transform(transform_id, now, models_built=len(built))
-    log.info("transform: done in %.1fs", time.monotonic() - started)
+    duration = time.monotonic() - started
+    events.emit(
+        "transform_finished",
+        status="success",
+        duration_s=round(duration, 1),
+        built=len(result.built),
+        checks=len(result.quality),
+        warnings=len(result.warnings),
+    )
+    log.info("transform: done in %.1fs", duration)
     return result
 
 
@@ -146,6 +163,7 @@ def _transform(
     now: datetime,
     revision_window: timedelta,
     built: list[str],
+    events: EventSink,
 ) -> TransformResult:
     staged: list[tuple[Path, Path]] = []  # (tmp, final), swapped in after everything succeeded
     con = duckdb.connect()
@@ -153,16 +171,19 @@ def _transform(
         con.execute("SET TimeZone = 'UTC'")
         available = _register_raw(con, settings)
         skipped = []
-        for model in MODELS:
+        for index, model in enumerate(MODELS, 1):
+            progress = {"model": model.name, "layer": model.layer, "index": index}
             if not set(model.inputs) <= available:
                 log.warning("transform: skipping %s (no %s yet)", model.name, model.inputs)
                 skipped.append(model.name)
+                events.emit("model_skipped", **progress)
                 continue
             tmp, rows = _build(con, settings, model)
             staged.append((tmp, _output_path(settings, model)))
             available.add(model.name)
             built.append(model.name)
             log.info("transform: %s: %d rows", model.name, rows)
+            events.emit("model_built", **progress, inputs=list(model.inputs), rows=rows)
 
         con.execute("SET VARIABLE now = ?", [now.isoformat()])
         results = []

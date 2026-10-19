@@ -143,7 +143,7 @@ uv run toeval transform                                           # rebuild stag
 
 Exit codes: 0 ok, 1 a stream or the transform failed, 2 usage error, 3 another run holds the lock. Logs go to `data/logs/toeval.log`.
 
-For a visual overview, `uv run python -m toeval ui` opens a local admin console at http://127.0.0.1:8765. It shows overall health, each stream's freshness and runs, the warehouse layers, the quality checks and the scheduled task's state. For now it is read-only; actions and a live run feed are planned ([ADR 0007](docs/decisions/0007-admin-console.md)).
+For a visual overview, `uv run python -m toeval ui` opens a local admin console at http://127.0.0.1:8765. It shows overall health, each stream's freshness and runs, the warehouse layers, the quality checks and the scheduled task's state. While a run is in progress, a live diagram and feed show each request, each raw file written and each model rebuilt, from progress events the pipeline writes to `data/state/events.jsonl`. For now it is read-only; actions and a schedule editor are planned ([ADR 0007](docs/decisions/0007-admin-console.md)).
 
 Reading the marts:
 

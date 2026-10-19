@@ -1,4 +1,5 @@
-"""FastAPI app behind `toeval ui`: serves the page and a JSON snapshot (ADR 0007).
+"""FastAPI app behind `toeval ui`: serves the page, a JSON snapshot and the progress events of
+the running process (ADR 0007).
 
 Local only: uvicorn binds 127.0.0.1, and TrustedHostMiddleware rejects other Host headers, so a
 web page elsewhere can't read this API through DNS rebinding.
@@ -12,12 +13,13 @@ from datetime import UTC, datetime
 from importlib.resources import files
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from toeval.config import Settings
+from toeval.events import read_events
 from toeval.ui.scheduler import TaskInfo, query_task
 from toeval.ui.snapshot import StateBusyError, build_snapshot, health, read_lock
 
@@ -106,5 +108,13 @@ def create_app(
             last_good.clear()
             last_good.update(snap)
         return JSONResponse(snap, headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/events")
+    def events(cursor: str | None = Query(None, max_length=100)) -> JSONResponse:
+        """New events after `cursor`; without one, the most recent events and a cursor."""
+        items, next_cursor = read_events(settings.events_path, cursor)
+        return JSONResponse(
+            {"events": items, "cursor": next_cursor}, headers={"Cache-Control": "no-store"}
+        )
 
     return app

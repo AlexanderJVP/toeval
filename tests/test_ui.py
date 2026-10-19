@@ -165,6 +165,7 @@ def test_page_and_snapshot_are_served(ingested: Settings) -> None:
     assert page.status_code == 200
     assert "toeval" in page.text
     assert c.get("/static/app.js").status_code == 200
+    assert c.get("/static/flow.js").status_code == 200
     assert snap.status_code == 200
     assert snap.json()["health"]["level"] == "ok"
 
@@ -249,3 +250,20 @@ def test_query_task_handles_powershell_failure() -> None:
         return subprocess.CompletedProcess([], 1, "", "boom")
 
     assert query_task(runner=failing) is None
+
+
+def test_events_endpoint_returns_history_then_new_events(ingested: Settings) -> None:
+    from toeval.events import EventLog
+
+    c = client(ingested)
+    assert c.get("/api/events").json() == {"events": [], "cursor": ""}  # no runs yet
+    log = EventLog(ingested.events_path, clock=lambda: NOW)
+    log.emit("run_started", source="elia", stream="load")
+
+    first = c.get("/api/events").json()
+    log.emit("request_done", rows=96)
+    second = c.get("/api/events", params={"cursor": first["cursor"]}).json()
+
+    assert [e["type"] for e in first["events"]] == ["run_started"]
+    assert [e["type"] for e in second["events"]] == ["request_done"]
+    assert c.get("/api/events", params={"cursor": "x" * 200}).status_code == 422

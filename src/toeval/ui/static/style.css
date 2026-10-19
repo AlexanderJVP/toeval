@@ -113,6 +113,66 @@ footer { padding: 20px 32px 32px; text-align: center; }
   border: 1px solid #4ea8ff66; background: #4ea8ff14; color: #bcdcff;
 }
 
+/* -- live data flow ------------------------------------------------------------------------ */
+
+.live { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr); gap: 16px; }
+.flow-wrap, .feed-wrap {
+  background: linear-gradient(160deg, var(--card-2), var(--card));
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.flow-wrap { padding: 10px 12px; display: flex; align-items: center; }
+#flow { width: 100%; height: auto; display: block; overflow: visible; }
+.live-on { color: var(--running); }
+
+.pipe { fill: none; stroke: #24305e; stroke-width: 3; stroke-linecap: round; transition: stroke 0.4s; }
+.pipe.active {
+  stroke: var(--running); stroke-dasharray: 4 10; opacity: 0.9;
+  animation: pipe-flow 0.7s linear infinite;
+}
+@keyframes pipe-flow { to { stroke-dashoffset: -14; } }
+
+.node rect { fill: #121a36; stroke: var(--line); stroke-width: 1.5; transition: stroke 0.4s; }
+.node[data-level="ok"] rect { stroke: #36d39966; }
+.node[data-level="error"] rect { stroke: var(--error); }
+.node[data-level="running"] rect, .node.active rect { stroke: var(--running); animation: node-pulse 1.6s ease-in-out infinite; }
+.node-title { fill: var(--text); font-size: 15px; font-weight: 600; }
+.node-source { fill: var(--muted); font-weight: 400; }
+.node-status { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.node[data-level="running"] .node-status { fill: #bcdcff; }
+.node[data-level="error"] .node-status { fill: var(--error); }
+.layer-node .node-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; }
+.node.flash-ok rect { animation: flash-ok 0.9s ease-out; }
+.node.flash-error rect { animation: flash-error 1.2s ease-out; }
+.node.flash-grey rect { animation: flash-grey 0.9s ease-out; }
+@keyframes node-pulse { 50% { stroke-opacity: 0.35; } }
+@keyframes flash-ok { from { fill: #36d39955; stroke: var(--ok); } }
+@keyframes flash-error { from { fill: #ff5d6c55; stroke: var(--error); } }
+@keyframes flash-grey { from { fill: #8a93b833; } }
+
+.particle { pointer-events: none; }
+.particle.ok { fill: #8ff0c6; filter: drop-shadow(0 0 4px var(--ok)); }
+.particle.grey { fill: var(--muted); }
+.particle.error { fill: var(--error); filter: drop-shadow(0 0 4px var(--error)); }
+.float-label {
+  fill: var(--ok); font-size: 12px; font-weight: 600; pointer-events: none;
+  animation: float-up 1.8s ease-out forwards;
+}
+@keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-18px); } }
+
+.feed-wrap { display: flex; flex-direction: column; min-height: 0; max-height: 340px; }
+.feed-head { padding: 12px 16px 8px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--line); }
+.feed { list-style: none; margin: 0; padding: 4px 0; overflow-y: auto; font-size: 12.5px; }
+.feed li { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; padding: 4px 16px; align-items: baseline; }
+.feed li time { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.feed li .who { color: var(--text); white-space: nowrap; }
+.feed li .what { color: var(--muted); overflow-wrap: anywhere; }
+.feed li[data-level="ok"] .what { color: #9fe8c6; }
+.feed li[data-level="running"] .what { color: #bcdcff; }
+.feed li[data-level="warn"] .what { color: var(--warn); }
+.feed li[data-level="error"] .what { color: var(--error); }
+.feed li.new { animation: feed-in 0.5s ease-out; }
+@keyframes feed-in { from { opacity: 0; transform: translateY(-6px); background: #4ea8ff22; } }
+
 /* -- stream cards --------------------------------------------------------------------------- */
 
 .streams { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
@@ -190,7 +250,7 @@ td.detail.error { color: var(--error); }
   .health { justify-self: start; }
   .meta { justify-items: start; text-align: left; }
   main { padding: 8px 16px 24px; }
-  .split { grid-template-columns: 1fr; }
+  .split, .live { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -16,6 +16,7 @@ from toeval import __version__
 from toeval.config import Settings, get_settings
 from toeval.connectors.base import RunMode, StreamRunResult, UnsupportedModeError
 from toeval.connectors.spec import BRUSSELS
+from toeval.events import EventLog
 from toeval.lock import FileLock, LockHeldError
 from toeval.log import setup_logging
 from toeval.pipeline import Pipeline
@@ -180,17 +181,23 @@ def _pipeline(*, busy_ok: bool = False) -> Iterator[Pipeline]:
             raise typer.Exit(0) from None
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(EXIT_LOCKED) from None
+    events = EventLog(settings.events_path)  # only the lock holder writes it
     try:
         with StateStore(settings.state_db_path) as store:
             # Holding the lock means nothing else runs: anything still 'running' was killed.
             if aborted := store.abort_orphaned(datetime.now(UTC)):
                 log.warning("marked %d run(s)/transform(s) of a killed process as failed", aborted)
+                events.emit("orphans_aborted", count=aborted)
             try:
-                yield Pipeline(settings, store)
+                yield Pipeline(settings, store, events=events)
             except (KeyError, ValueError) as exc:  # unknown source/stream, bad sources.toml
                 typer.echo(f"error: {exc}", err=True)
                 raise typer.Exit(EXIT_USAGE) from None
     finally:
+        # The state DB is closed now, so the console can read it again. A run-due tick that
+        # found nothing due emitted nothing and stays silent here too.
+        if events.emitted:
+            events.emit("idle")
         lock.release()
 
 

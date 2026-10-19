@@ -58,6 +58,11 @@ class Settings(BaseSettings):
         return self.data_path / "state" / "state.duckdb"
 
     @property
+    def events_path(self) -> Path:
+        """Progress events of the running process, tailed by the admin console."""
+        return self.data_path / "state" / "events.jsonl"
+
+    @property
     def lock_path(self) -> Path:
         return self.data_path / "state" / "ingest.lock"
 

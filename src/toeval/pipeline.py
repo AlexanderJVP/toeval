@@ -12,6 +12,7 @@ from toeval.config import Settings
 from toeval.connectors import registry
 from toeval.connectors.base import Connector, RunMode, StreamRunResult
 from toeval.connectors.spec import SourceSpec, StreamSpec, load_overrides
+from toeval.events import NULL_SINK, EventSink
 from toeval.state import StateStore, StreamState
 from toeval.warehouse.transform import TransformResult, outputs_missing, transform
 
@@ -71,10 +72,12 @@ class Pipeline:
         *,
         clock: Clock = _utcnow,
         connectors: Mapping[str, type[Connector]] | None = None,
+        events: EventSink = NULL_SINK,
     ) -> None:
         self._settings = settings
         self._store = store
         self._clock = clock
+        self._events = events
         self._connectors = dict(registry.CONNECTORS if connectors is None else connectors)
         self._overrides = load_overrides(settings.sources_path)
         unknown = set(self._overrides) - set(self._connectors)
@@ -95,7 +98,9 @@ class Pipeline:
 
     def connector(self, source: str) -> Connector:
         spec = self.spec(source)
-        return self._connectors[source](self._settings, self._store, spec=spec, clock=self._clock)
+        return self._connectors[source](
+            self._settings, self._store, spec=spec, clock=self._clock, events=self._events
+        )
 
     def run(
         self,
@@ -166,7 +171,9 @@ class Pipeline:
             if s.revision_window is not None
         ]
         kwargs = {"revision_window": min(windows)} if windows else {}
-        return transform(self._settings, self._store, now=self._clock(), **kwargs)
+        return transform(
+            self._settings, self._store, now=self._clock(), events=self._events, **kwargs
+        )
 
     def status(self) -> list[StreamStatus]:
         out = []
