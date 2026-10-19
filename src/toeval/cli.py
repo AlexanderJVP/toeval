@@ -4,6 +4,7 @@ Exit codes: 0 ok, 1 at least one stream run failed, 2 usage error, 3 another run
 """
 
 import logging
+import time
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -29,6 +30,9 @@ app = typer.Typer(help="Toeval data platform.", no_args_is_help=True)
 EXIT_FAILED = 1
 EXIT_USAGE = 2
 EXIT_LOCKED = 3
+# How long a run waits for readers (the admin console) to let go of the state DB. They hold it for
+# milliseconds per snapshot, but DuckDB refuses a writer while any other process has it open.
+STATE_OPEN_TIMEOUT = 30.0
 
 
 @app.callback()
@@ -214,7 +218,7 @@ def _pipeline(*, busy_ok: bool = False) -> Iterator[Pipeline]:
         raise typer.Exit(EXIT_LOCKED) from None
     events = EventLog(settings.events_path)  # only the lock holder writes it
     try:
-        with StateStore(settings.state_db_path) as store:
+        with _open_state(settings) as store:
             # Holding the lock means nothing else runs: anything still 'running' was killed.
             if aborted := store.abort_orphaned(datetime.now(UTC)):
                 log.warning("marked %d run(s)/transform(s) of a killed process as failed", aborted)
@@ -230,6 +234,23 @@ def _pipeline(*, busy_ok: bool = False) -> Iterator[Pipeline]:
         if events.emitted:
             events.emit("idle")
         lock.release()
+
+
+def _open_state(settings: Settings) -> StateStore:
+    """Open the state DB for writing, waiting briefly while another process reads it."""
+    deadline = time.monotonic() + STATE_OPEN_TIMEOUT
+    delay = 0.05
+    while True:
+        try:
+            return StateStore(settings.state_db_path)
+        except duckdb.IOException as exc:
+            if time.monotonic() + delay > deadline:
+                log.error("state DB still in use after %.0fs: %s", STATE_OPEN_TIMEOUT, exc)
+                typer.echo(f"error: the state DB is in use by another program: {exc}", err=True)
+                raise typer.Exit(EXIT_LOCKED) from None
+            log.debug("state DB in use, retrying in %.2fs: %s", delay, exc)
+            time.sleep(delay)
+            delay = min(delay * 2, 1.0)
 
 
 def _run(action: Callable[[], Sequence[StreamRunResult]]) -> Sequence[StreamRunResult]:

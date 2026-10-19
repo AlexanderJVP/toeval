@@ -151,6 +151,53 @@ con = duckdb.connect(sys.argv[1])
 print("ready", flush=True)
 time.sleep(60)
 """
+# Like the admin console: a read-only connection, held for `argv[2]` seconds.
+READ_DB = """
+import sys, time, duckdb
+con = duckdb.connect(sys.argv[1], read_only=True)
+print("ready", flush=True)
+time.sleep(float(sys.argv[2]))
+con.close()
+time.sleep(60)
+"""
+
+
+def hold_read_only(db: Path, seconds: float) -> subprocess.Popen[str]:
+    reader = subprocess.Popen(
+        [sys.executable, "-c", READ_DB, str(db), str(seconds)], stdout=subprocess.PIPE, text=True
+    )
+    assert reader.stdout is not None
+    assert reader.stdout.readline().strip() == "ready"
+    return reader
+
+
+def test_a_run_waits_for_a_reader_of_the_state_db(data_dir: Path) -> None:
+    runner.invoke(app, ["ingest", "series"])
+    reader = hold_read_only(data_dir / "state" / "state.duckdb", 0.5)
+    try:
+        result = runner.invoke(app, ["ingest", "series"])
+    finally:
+        reader.kill()
+        reader.wait()
+
+    assert result.exit_code == 0, result.output
+
+
+def test_a_state_db_held_too_long_gives_exit_code_3(
+    data_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runner.invoke(app, ["ingest", "series"])
+    monkeypatch.setattr("toeval.cli.STATE_OPEN_TIMEOUT", 0.3)
+    reader = hold_read_only(data_dir / "state" / "state.duckdb", 60)
+    try:
+        result = runner.invoke(app, ["run-due"])
+    finally:
+        reader.kill()
+        reader.wait()
+
+    assert result.exit_code == 3, result.output
+    assert "in use by another program" in result.output
+    assert not (data_dir / "state" / "ingest.lock").exists()  # the lock was released
 
 
 def test_transform_command_and_run_due_trigger(data_dir: Path) -> None:
