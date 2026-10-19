@@ -48,7 +48,11 @@ def test_snapshot_of_a_healthy_pipeline(ingested: Settings) -> None:
     snap = build_snapshot(ingested, now=NOW, task=READY)
 
     assert snap["health"] == {"level": "ok", "reasons": []}
-    assert [s["stream"] for s in snap["streams"]] == ["load", "wind", "solar"]
+    assert [s["stream"] for s in snap["streams"] if s["source"] == "elia"] == [
+        "load",
+        "wind",
+        "solar",
+    ]
     load = snap["streams"][0]
     assert load["schedule"] == "daily at 12:00"
     assert load["data_age_hours"] == 20.0
@@ -89,7 +93,7 @@ def test_overdue_stream_means_the_scheduler_is_not_running(ingested: Settings) -
     snap = build_snapshot(ingested, now=later, task=READY)
 
     assert snap["health"]["level"] == "warn"
-    assert all(s["overdue"] for s in snap["streams"])
+    assert all(s["overdue"] for s in snap["streams"] if s["source"] == "elia")
 
 
 def test_quality_warnings_and_scheduler_problems_are_reported(ingested: Settings) -> None:

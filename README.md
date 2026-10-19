@@ -9,7 +9,7 @@ Two projects will sit on top of it:
 1. **A spurious correlation tracker** that hunts for absurd correlations across datasets, then tracks week by week how they fall apart on new data. Playful tone, rigorous statistics.
 2. **JEPA on unlabeled time series:** self-supervised pretraining on the warehouse, benchmarked honestly against simple baselines trained on the same few labels.
 
-**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015.
+**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is built; its staging and history download follow.
 
 ## What's in the warehouse
 
@@ -27,6 +27,8 @@ Two projects will sit on top of it:
 - `mart_energy_hourly`: the same per hour, NULL unless all four quarter-hours are present.
 
 For 2025 the mart gives a Belgian load of 80.2 TWh, solar 10.2 TWh and wind 12.0 TWh.
+
+[Open-Meteo](https://open-meteo.com) serves hourly ERA5 reanalysis weather. `openmeteo/hourly` covers 7 points: Antwerp, Brussels, Ghent, Liège, Ostend, Libramont (Ardennes) and the Belgian offshore wind zone. It has 9 variables (temperature, humidity, precipitation, cloud cover, pressure, wind at 10 m and 100 m, wind direction, solar radiation). ERA5 runs ~5–6 days behind real time ([ADR 0008](docs/decisions/0008-open-meteo-weather.md)). The connector is built; the stream stays paused until staging exists.
 
 ## Architecture
 
@@ -162,7 +164,7 @@ for day, mwh in rows:
     print(day, mwh)
 ```
 
-Schedules, revision windows and rate limits can be overridden per source and stream in an optional `sources.toml`, without code changes:
+Schedules, revision windows and rate limits can be overridden per source and stream in an optional `sources.toml` (gitignored: it's local operating state), without code changes:
 
 ```toml
 [elia.streams.load]
@@ -193,6 +195,7 @@ src/toeval/
     http.py                 HttpClient: rate limit, retries, conditional GET
     planning.py             time-window planning for time-series sources
     elia.py                 the Elia connector
+    openmeteo.py            the Open-Meteo (ERA5 weather) connector
   warehouse/
     raw.py                  immutable raw writer and quarantine
     transform.py            rebuilds staging + marts, runs quality checks
@@ -201,6 +204,7 @@ src/toeval/
 tests/
   fakes.py                  one fake source per shape (history, live, periodic)
   fixtures/elia/            recorded Elia exports
+  fixtures/openmeteo/       a recorded Open-Meteo archive response
 docs/decisions/             architecture decision records
 scripts/scheduled-task.ps1  Task Scheduler setup
 ```
@@ -215,4 +219,4 @@ scripts/scheduled-task.ps1  Task Scheduler setup
 
 ## Licence and data attribution
 
-The code is MIT-licensed ([LICENSE](LICENSE)). The data is not covered by that licence: Elia data is © Elia, published under the [Elia Open Data Licence](https://opendata.elia.be). The recorded test fixtures in `tests/fixtures/elia/` are small extracts of it.
+The code is MIT-licensed ([LICENSE](LICENSE)). The data is not covered by that licence: Elia data is © Elia, published under the [Elia Open Data Licence](https://opendata.elia.be). The recorded test fixtures in `tests/fixtures/elia/` are small extracts of it. Weather data: [Open-Meteo](https://open-meteo.com) (CC-BY 4.0), based on Copernicus Climate Change Service ERA5 reanalysis (Hersbach et al., 2023); free use is limited to non-commercial purposes. `tests/fixtures/openmeteo/` holds one recorded response.

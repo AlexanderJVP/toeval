@@ -15,6 +15,8 @@ htmlcov/
 
 # Secrets and local config
 .env
+# Local operating overrides: paused streams, console schedule edits (ADR 0008)
+sources.toml
 
 # Warehouse data (lives in DATA_DIR, default ./data)
 data/

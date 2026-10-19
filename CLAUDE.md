@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 hasn't started; plan it with the owner first. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, step 1 of 3 built: connector, stream **paused** in the local `sources.toml` until step 3 downloads the history), then IRCEL-CELINE, a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
 ## Commands
 
@@ -98,6 +98,16 @@ Implemented in `src/toeval/connectors/elia.py`: source `elia`, streams `load` (o
 - Natural keys: load `datetime`; wind `datetime, offshoreonshore, region, gridconnectiontype`; solar `datetime, region` (see ADR 0003).
 - Licence: Elia Open Data Licence.
 - DuckDB needs `pytz` to return `TIMESTAMP WITH TIME ZONE` values to Python (`fetchall`). It isn't installed, so keep timestamps in SQL/Arrow, or cast them to text.
+
+## Open-Meteo facts (verified 2026-10-19, ADR 0008)
+
+Implemented in `src/toeval/connectors/openmeteo.py`: source `openmeteo`, stream `hourly`, natural key `(location, time)`, 7 locations × 9 variables. Fixture: `tests/fixtures/openmeteo/README.md`.
+
+- `https://archive-api.open-meteo.com/v1/archive`, no key, `models=era5` (0.25° grid, covers the sea), `wind_speed_unit=ms`, `timezone=GMT`. Non-commercial use only, CC-BY 4.0 (credit Open-Meteo and Copernicus ERA5).
+- Limits 600 calls/min, 5,000/h, 10,000/day. A request costs one call per location per 2 weeks (more above 10 variables), so one yearly 7-location request ≈ 182 calls. Hence `requests_per_second=1/25`: a full backfill ≈ 2,150 calls in ~5 min. The per-minute limit is the binding one.
+- ERA5 runs ~5–6 days behind. Hours not covered yet come back as nulls (dropped in `fetch`), not an error. `start_date`/`end_date` are inclusive dates; a date after today is HTTP 400, so `plan` caps `end_date` at today.
+- `precipitation` and `shortwave_radiation` cover the hour *before* `time`; the other variables are instantaneous. Raw keeps API timestamps; the alignment to `hour_start_utc` belongs in the marts (rules in ADR 0008).
+- Step 2 must make `freshness` and `revision_lag` thresholds per stream and the quality SQL / `RAW_INPUTS` generic; they are Elia-only today.
 
 ## Conventions
 

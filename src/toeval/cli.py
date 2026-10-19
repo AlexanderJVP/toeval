@@ -145,10 +145,15 @@ def status() -> None:
                 if s.state.consecutive_failures
                 else ""
             )
+            paused = pipeline.spec(s.source).stream(s.stream).paused
+            next_run = (
+                "paused: scheduled runs skip it"
+                if paused
+                else f"next due {_fmt(s.next_due) or 'now'}"
+            )
             typer.echo(
                 f"{s.source}/{s.stream}: watermark {wm}, last success "
-                f"{_fmt(s.state.last_success_at)}{failures}, next due {_fmt(s.next_due) or 'now'}"
-                + (" (paused)" if pipeline.spec(s.source).stream(s.stream).paused else "")
+                f"{_fmt(s.state.last_success_at) or 'never'}{failures}, {next_run}"
             )
         t = store.transform_status()
         if t.last_attempt_at is not None:
