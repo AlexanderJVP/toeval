@@ -261,6 +261,41 @@ td.detail.error { color: var(--error); }
 
 .empty { color: var(--muted); padding: 16px; }
 
+/* -- schedule editor ------------------------------------------------------------------------ */
+
+.custom {
+  margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 11px;
+  border: 1px solid var(--running); color: var(--running);
+}
+.dialog {
+  width: min(460px, calc(100vw - 32px)); padding: 22px 24px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 20px 60px #000a;
+}
+.dialog::backdrop { background: #05081499; backdrop-filter: blur(2px); }
+.dialog h3 { margin: 0 0 14px; font-size: 17px; }
+.kinds { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.kinds label {
+  padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+  font-size: 13.5px;
+}
+.kinds label:has(input:checked) { border-color: var(--running); background: #4ea8ff22; }
+.kinds input { margin: 0 6px 0 0; accent-color: var(--running); }
+.field { margin-bottom: 12px; }
+.field[hidden] { display: none; }
+.field input, .field select {
+  margin: 0 4px; padding: 4px 8px; font: inherit; color: var(--text);
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
+  color-scheme: dark;
+}
+.field input[type="number"] { width: 72px; }
+.field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--running); outline-offset: 1px; }
+.hint { margin: 4px 0 0; color: var(--muted); font-size: 12.5px; }
+.form-error { min-height: 1.2em; margin: 8px 0 0; color: var(--error); font-size: 13px; }
+.dialog-actions { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+.dialog-actions .spacer { flex: 1; }
+
 /* -- jobs and toasts ------------------------------------------------------------------------ */
 
 .jobs { display: grid; gap: 8px; }

@@ -115,6 +115,11 @@ class Pipeline:
         except KeyError:
             raise KeyError(f"unknown source {source!r}; known: {self.sources}") from None
 
+    def default_spec(self, source: str) -> SourceSpec:
+        """The connector's own spec, before sources.toml overrides."""
+        self.spec(source)  # KeyError for an unknown source
+        return self._connectors[source].spec
+
     def connector(self, source: str) -> Connector:
         spec = self.spec(source)
         return self._connectors[source](

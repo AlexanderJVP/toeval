@@ -14,29 +14,40 @@ import secrets
 import threading
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from importlib.resources import files
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter, model_validator
 
 from toeval.config import Settings
 from toeval.connectors import registry
+from toeval.connectors.spec import Schedule, StreamSpec, load_overrides
 from toeval.events import read_events
-from toeval.sources_file import set_stream_option
+from toeval.pipeline import resolve_specs
+from toeval.sources_file import set_stream_option, set_stream_options
 from toeval.ui.actions import BusyError, JobRunner
 from toeval.ui.scheduler import TaskInfo, query_task
-from toeval.ui.snapshot import StateBusyError, build_snapshot, health, read_lock
+from toeval.ui.snapshot import (
+    StateBusyError,
+    build_snapshot,
+    describe_schedule,
+    health,
+    read_lock,
+    stream_settings,
+)
 
 log = logging.getLogger(__name__)
 
 STATIC = files("toeval.ui") / "static"
 TASK_REFRESH_SECONDS = 30.0
+# `run-due` runs every 5 min (ADR 0005), so a shorter interval would only look shorter.
+MIN_INTERVAL_MINUTES = 5
 
 
 def _utcnow() -> datetime:
@@ -88,6 +99,51 @@ class PauseRequest(BaseModel):
     source: str = Field(max_length=64)
     stream: str = Field(max_length=64)
     paused: bool
+
+
+class ScheduleFields(BaseModel):
+    kind: Literal["interval", "daily", "monthly"]
+    every_minutes: int | None = Field(default=None, ge=MIN_INTERVAL_MINUTES, le=31 * 24 * 60)
+    at: str | None = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    day: int | None = Field(default=None, ge=1, le=28)
+
+    @model_validator(mode="after")
+    def _complete(self) -> "ScheduleFields":
+        needed = {"interval": ("every_minutes",), "daily": ("at",), "monthly": ("day", "at")}
+        missing = [f for f in needed[self.kind] if getattr(self, f) is None]
+        if missing:
+            raise ValueError(f"a {self.kind} schedule needs {', '.join(missing)}")
+        return self
+
+    def as_override(self) -> dict[str, Any]:
+        if self.kind == "interval":
+            return {"kind": "interval", "every": f"{self.every_minutes}m"}
+        if self.kind == "daily":
+            return {"kind": "daily", "at": self.at}
+        return {"kind": "monthly", "day": self.day, "at": self.at}
+
+
+class ScheduleRequest(BaseModel):
+    source: str = Field(max_length=64)
+    stream: str = Field(max_length=64)
+    schedule: ScheduleFields
+    # None: the connector's default.
+    revision_window_days: int | None = Field(default=None, ge=1, le=365)
+
+
+def schedule_overrides(body: ScheduleRequest, default: StreamSpec) -> dict[str, Any]:
+    """The sources.toml values for an edit; a value equal to the default removes the override,
+    so the file only holds real deviations and later default changes in code still apply."""
+    schedule: dict[str, Any] | None = body.schedule.as_override()
+    if TypeAdapter(Schedule).validate_python(schedule) == default.schedule:
+        schedule = None
+    window: str | None = None
+    if body.revision_window_days is not None:
+        if default.revision_window is None:
+            raise ValueError(f"{default.name!r} has no revision window")
+        if timedelta(days=body.revision_window_days) != default.revision_window:
+            window = f"{body.revision_window_days}d"
+    return {"schedule": schedule, "revision_window": window}
 
 
 def create_app(
@@ -205,6 +261,34 @@ def create_app(
             if (stream["source"], stream["stream"]) == (body.source, body.stream):
                 stream["paused"] = body.paused
         return JSONResponse({"source": body.source, "stream": body.stream, "paused": body.paused})
+
+    @app.post("/api/actions/schedule", dependencies=[Depends(authorized)])
+    def edit_schedule(body: ScheduleRequest) -> JSONResponse:
+        known(body.source, body.stream)
+        default = registry.CONNECTORS[body.source].spec.stream(body.stream)
+        path = settings.sources_path
+        try:
+            set_stream_options(path, body.source, body.stream, schedule_overrides(body, default))
+            specs = resolve_specs(load_overrides(path), registry.CONNECTORS, path)
+        except (KeyError, ValueError, OSError) as exc:
+            raise HTTPException(400, f"could not update {path.name}: {exc}") from None
+        effective = specs[body.source].stream(body.stream)
+        result = {
+            "source": body.source,
+            "stream": body.stream,
+            "schedule": describe_schedule(effective),
+            "settings": stream_settings(effective, default),
+        }
+        log.info(
+            "%s/%s schedule set to %s from the console",
+            body.source,
+            body.stream,
+            result["schedule"],
+        )
+        for stream in last_good.get("streams", []):
+            if (stream["source"], stream["stream"]) == (body.source, body.stream):
+                stream.update(schedule=result["schedule"], settings=result["settings"])
+        return JSONResponse(result)
 
     @app.get("/api/jobs")
     def job_list() -> JSONResponse:

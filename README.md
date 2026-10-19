@@ -143,7 +143,7 @@ uv run toeval transform                                           # rebuild stag
 
 Exit codes: 0 ok, 1 a stream or the transform failed, 2 usage error, 3 another run holds the lock. Logs go to `data/logs/toeval.log`.
 
-For a visual overview, `uv run python -m toeval ui` opens a local admin console at http://127.0.0.1:8765. It shows overall health, each stream's freshness and runs, the warehouse layers, the quality checks and the scheduled task's state. While a run is in progress, a live diagram and feed show each request, each raw file written and each model rebuilt, from progress events the pipeline writes to `data/state/events.jsonl`. Buttons start a fetch or a rebuild (as the normal `toeval` commands, in the background) and pause or resume a stream; a schedule editor is planned ([ADR 0007](docs/decisions/0007-admin-console.md)).
+For a visual overview, `uv run python -m toeval ui` opens a local admin console at http://127.0.0.1:8765. It shows overall health, each stream's freshness and runs, the warehouse layers, the quality checks and the scheduled task's state. While a run is in progress, a live diagram and feed show each request, each raw file written and each model rebuilt, from progress events the pipeline writes to `data/state/events.jsonl`. Buttons start a fetch or a rebuild (as the normal `toeval` commands, in the background), pause or resume a stream, and change a stream's schedule or revision window; changes are written to `sources.toml` ([ADR 0007](docs/decisions/0007-admin-console.md)).
 
 To stop the scheduled runs of one stream without touching the others: `uv run toeval pause elia wind` (and `resume`). It is stored in `sources.toml`; explicit `ingest` and `backfill` still run a paused stream.
 

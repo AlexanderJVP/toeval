@@ -183,7 +183,7 @@ function renderStreams() {
       <article class="card" data-level="${level}">
         <div class="card-head">
           <div class="card-title"><span class="source">${esc(s.source)} /</span> ${esc(s.stream)}</div>
-          <div class="card-sub">${esc(s.schedule)}</div>
+          <div class="card-sub">${esc(s.schedule)}${s.settings && s.settings.customized ? ' <span class="custom" title="set in sources.toml">custom</span>' : ""}</div>
         </div>
         <div class="freshness">
           <div class="big">${s.data_until ? `data until ${when(s.data_until)}` : "no data yet"}</div>
@@ -201,6 +201,7 @@ function renderStreams() {
           ${s.paused
             ? `<button type="button" data-action="resume" ${ref} title="Scheduled runs pick this stream up again">Resume</button>`
             : `<button type="button" data-action="pause" ${ref} class="quiet" title="Scheduled runs skip this stream until you resume it">Pause</button>`}
+          <button type="button" data-action="schedule" ${ref} class="quiet" title="Change when scheduled runs fetch this stream">Schedule…</button>
         </div>
       </article>`;
   }).join(""));
@@ -269,6 +270,10 @@ document.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-action]");
   if (!button || button.disabled) return;
   const { action: kind, source, stream } = button.dataset;
+  if (kind === "schedule") {
+    openSchedule(source, stream);
+    return;
+  }
   button.disabled = true;
   if (kind === "fetch" || kind === "transform") {
     const job = kind === "fetch"
@@ -289,6 +294,108 @@ document.addEventListener("click", async (event) => {
   }
   button.disabled = false;
   render();
+});
+
+// -- schedule editor ---------------------------------------------------------------------------
+
+const dialog = $("schedule-dialog");
+const form = $("schedule-form");
+let editing = null; // the stream being edited
+
+function openSchedule(source, stream) {
+  editing = snapshot.streams.find((s) => s.source === source && s.stream === stream);
+  if (!editing || !editing.settings) return;
+  const st = editing.settings;
+  $("sd-title").textContent = `Schedule for ${source}/${stream}`;
+  $("sd-window").hidden = st.default_revision_window_days == null;
+  const recheck = st.default_revision_window_days == null ? "" : ` · re-check ${st.default_revision_window_days} days`;
+  $("sd-default").textContent = `Default: ${st.default_schedule_text}${recheck}.`;
+  fillSchedule(st.schedule, st.revision_window_days);
+  dialog.showModal();
+}
+
+function fillSchedule(schedule, windowDays) {
+  const f = form.elements;
+  f.kind.value = schedule.kind;
+  const minutes = schedule.every_minutes ?? 60;
+  const hours = minutes % 60 === 0;
+  f.every.value = hours ? minutes / 60 : minutes;
+  f.unit.value = hours ? "60" : "1";
+  f.day.value = schedule.day ?? 1;
+  f.at.value = schedule.at ?? "12:00";
+  f.window.value = windowDays ?? "";
+  $("sd-error").textContent = "";
+  showKind();
+}
+
+function showKind() {
+  const kind = form.elements.kind.value;
+  for (const field of form.querySelectorAll("[data-kinds]")) {
+    field.hidden = !field.dataset.kinds.split(" ").includes(kind);
+  }
+}
+
+function readSchedule() {
+  const f = form.elements;
+  const kind = f.kind.value;
+  const schedule = { kind };
+  if (kind === "interval") {
+    schedule.every_minutes = Number(f.every.value) * Number(f.unit.value);
+    if (!Number.isInteger(schedule.every_minutes) || schedule.every_minutes < 5) {
+      throw new Error("the interval must be a whole number of at least 5 minutes");
+    }
+  } else {
+    if (!/^\d\d:\d\d$/.test(f.at.value)) throw new Error("pick a time");
+    schedule.at = f.at.value;
+    if (kind === "monthly") {
+      schedule.day = Number(f.day.value);
+      if (!Number.isInteger(schedule.day) || schedule.day < 1 || schedule.day > 28) {
+        throw new Error("the day must be 1 to 28, so it exists in every month");
+      }
+    }
+  }
+  let windowDays = null;
+  if (!$("sd-window").hidden && f.window.value !== "") {
+    windowDays = Number(f.window.value);
+    if (!Number.isInteger(windowDays) || windowDays < 1 || windowDays > 365) {
+      throw new Error("re-check between 1 and 365 days");
+    }
+  }
+  return { schedule, revision_window_days: windowDays };
+}
+
+form.addEventListener("change", (event) => { if (event.target.name === "kind") showKind(); });
+
+form.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-sd]");
+  if (!button) return;
+  if (button.dataset.sd === "cancel") dialog.close();
+  if (button.dataset.sd === "defaults" && editing) {
+    fillSchedule(editing.settings.default_schedule, editing.settings.default_revision_window_days);
+  }
+});
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!editing) return;
+  let body;
+  try {
+    body = readSchedule();
+  } catch (err) {
+    $("sd-error").textContent = err.message;
+    return;
+  }
+  const { source, stream } = editing;
+  const save = form.querySelector('button[type="submit"]');
+  save.disabled = true;
+  const done = await action("/api/actions/schedule", { source, stream, ...body });
+  save.disabled = false;
+  if (!done) return;
+  Object.assign(editing, { schedule: done.schedule, settings: done.settings });
+  dialog.close();
+  toast(`${source}/${stream}: ${done.schedule}`, "ok");
+  render();
+  poll();
 });
 
 function toast(message, level) {

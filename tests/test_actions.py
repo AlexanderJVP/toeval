@@ -12,14 +12,14 @@ import pytest
 from fastapi.testclient import TestClient
 from typer.testing import CliRunner
 
-from fakes import ORIGIN, FakeClock, FakeSeriesConnector, SeriesServer, bind
+from fakes import ORIGIN, FakeClock, FakeLiveConnector, FakeSeriesConnector, SeriesServer, bind
 from toeval.cli import app as cli
 from toeval.config import Settings, get_settings
 from toeval.pipeline import Pipeline
 from toeval.sources_file import set_stream_option
 from toeval.state import StateStore
 from toeval.ui.actions import BusyError, JobRunner
-from toeval.ui.app import create_app
+from toeval.ui.app import ScheduleRequest, create_app, schedule_overrides
 from toeval.ui.scheduler import TaskInfo
 from toeval.ui.snapshot import build_snapshot
 
@@ -249,3 +249,120 @@ def test_pause_from_the_console_shows_in_the_snapshot(settings: Settings) -> Non
     assert "elia/wind is paused: scheduled runs skip it" in [
         r["message"] for r in snap["health"]["reasons"]
     ]
+
+
+# -- schedule editor -----------------------------------------------------------------------------
+
+
+def schedule_body(stream: str, schedule: dict[str, object], window: int | None = None) -> dict:
+    return {
+        "source": "elia",
+        "stream": stream,
+        "schedule": schedule,
+        "revision_window_days": window,
+    }
+
+
+def test_editing_a_schedule_writes_only_real_deviations(settings: Settings) -> None:
+    c = client(settings)
+
+    edited = c.post(
+        "/api/actions/schedule",
+        headers=AUTH,
+        json=schedule_body("wind", {"kind": "interval", "every_minutes": 120}, 30),
+    )
+    written = settings.sources_path.read_text("utf-8")
+    back = c.post(
+        "/api/actions/schedule",
+        headers=AUTH,
+        json=schedule_body("wind", {"kind": "daily", "at": "12:00"}, 14),  # Elia's defaults
+    )
+
+    assert edited.status_code == 200, edited.text
+    assert edited.json()["schedule"] == "every 2 h"
+    assert edited.json()["settings"]["customized"] is True
+    assert 'schedule = {kind = "interval", every = "120m"}' in written
+    assert 'revision_window = "30d"' in written
+    assert back.json()["settings"]["customized"] is False
+    assert settings.sources_path.read_text("utf-8").strip() == ""
+
+
+def test_an_edited_schedule_drives_the_pipeline(settings: Settings, store: StateStore) -> None:
+    server = SeriesServer()
+    server.set_range(ORIGIN, NOW, lambda t: 1.0)
+    connectors = {"series": bind(FakeSeriesConnector, server)}
+    pipeline = Pipeline(settings, store, clock=FakeClock(NOW), connectors=connectors)
+    pipeline.run("series")
+    assert pipeline.due() == []  # daily at 06:30 by default, and it just ran
+
+    set_stream_option(
+        settings.sources_path,
+        "series",
+        "hourly",
+        "schedule",
+        {"kind": "monthly", "day": 3, "at": "07:15"},
+        connectors=connectors,
+    )
+    spec = Pipeline(settings, store, connectors=connectors).spec("series").stream("hourly")
+
+    assert spec.schedule.kind == "monthly"
+    assert spec.schedule.next_after(NOW) == datetime(2026, 2, 3, 6, 15, tzinfo=UTC)
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        {"kind": "interval", "every_minutes": 2},  # below the scheduler's 5-min tick
+        {"kind": "daily", "at": "25:00"},
+        {"kind": "daily"},
+        {"kind": "monthly", "day": 31, "at": "09:00"},
+        {"kind": "weekly", "at": "09:00"},
+    ],
+)
+def test_impossible_schedules_are_refused(settings: Settings, schedule: dict) -> None:
+    response = client(settings).post(
+        "/api/actions/schedule", headers=AUTH, json=schedule_body("load", schedule)
+    )
+
+    assert response.status_code == 422
+    assert not settings.sources_path.exists()
+
+
+def test_the_snapshot_offers_the_editor_its_values_and_defaults(settings: Settings) -> None:
+    settings.sources_path.write_text(
+        '[elia.streams.solar]\nschedule = {kind = "daily", at = "13:30"}\n', "utf-8"
+    )
+    with StateStore(settings.state_db_path):
+        pass
+
+    snap = build_snapshot(settings, now=NOW, task=None)
+    solar = next(s for s in snap["streams"] if s["stream"] == "solar")
+
+    assert solar["schedule"] == "daily at 13:30"
+    assert solar["settings"] == {
+        "schedule": {"kind": "daily", "at": "13:30"},
+        "revision_window_days": 14,
+        "default_schedule": {"kind": "daily", "at": "12:00"},
+        "default_schedule_text": "daily at 12:00",
+        "default_revision_window_days": 14,
+        "customized": True,
+    }
+
+
+def test_a_revision_window_needs_a_stream_that_has_one() -> None:
+    live = FakeLiveConnector.spec.streams[0]
+    body = ScheduleRequest.model_validate(
+        {
+            "source": "live",
+            "stream": live.name,
+            "schedule": {"kind": "interval", "every_minutes": 5},
+            "revision_window_days": 3,
+        }
+    )
+
+    with pytest.raises(ValueError, match="no revision window"):
+        schedule_overrides(body, live)
+    assert schedule_overrides(body.model_copy(update={"revision_window_days": None}), live) == {
+        "schedule": None,  # 5 min is that stream's default
+        "revision_window": None,
+    }

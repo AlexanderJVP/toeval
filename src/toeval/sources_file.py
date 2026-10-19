@@ -1,4 +1,5 @@
-"""Programmatic edits of sources.toml (`toeval pause/resume`, the admin console).
+"""Programmatic edits of sources.toml (`toeval pause/resume`, the admin console's pause and
+schedule editor).
 
 Edits keep the owner's comments and formatting (tomlkit), are validated exactly like a run
 validates the file (`pipeline.resolve_specs`) before anything is written, and replace the file
@@ -31,6 +32,19 @@ def set_stream_option(
 ) -> None:
     """Set `[<source>.streams.<stream>] key = value`; `None` removes the key (back to the
     connector's default) and drops tables left empty."""
+    set_stream_options(path, source, stream, {key: value}, connectors=connectors)
+
+
+def set_stream_options(
+    path: Path,
+    source: str,
+    stream: str,
+    values: Mapping[str, Any],
+    *,
+    connectors: Mapping[str, type[Connector]] | None = None,
+) -> None:
+    """Several `set_stream_option`s in one validated write. A dict value (e.g. a schedule) is
+    written as an inline table and replaces the old value wholesale."""
     connectors = registry.CONNECTORS if connectors is None else connectors
     if source not in connectors:
         raise KeyError(f"unknown source {source!r}; known: {sorted(connectors)}")
@@ -40,10 +54,15 @@ def set_stream_option(
     src = _table(doc, source)
     streams = _table(src, "streams")
     options = _table(streams, stream, super_table=False)
-    if value is None:
-        options.pop(key, None)
-    else:
-        options[key] = value
+    for key, value in values.items():
+        if value is None:
+            options.pop(key, None)
+        elif isinstance(value, Mapping):
+            table = tomlkit.inline_table()
+            table.update(value)
+            options[key] = table
+        else:
+            options[key] = value
     for parent, name, table in ((streams, stream, options), (src, "streams", streams)):
         if not table:
             del parent[name]
@@ -82,4 +101,4 @@ def _write_atomic(path: Path, text: str) -> None:
         tmp.unlink(missing_ok=True)
 
 
-__all__ = ["set_stream_option"]
+__all__ = ["set_stream_option", "set_stream_options"]

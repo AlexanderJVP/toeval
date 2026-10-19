@@ -83,9 +83,44 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
+  <dialog id="schedule-dialog" class="dialog" aria-labelledby="sd-title">
+    <form id="schedule-form" novalidate>
+      <h3 id="sd-title">Schedule</h3>
+      <div class="kinds" role="radiogroup" aria-label="Kind of schedule">
+        <label><input type="radio" name="kind" value="interval"> Every …</label>
+        <label><input type="radio" name="kind" value="daily"> Daily</label>
+        <label><input type="radio" name="kind" value="monthly"> Monthly</label>
+      </div>
+      <div class="field" data-kinds="interval">
+        <label>Every <input type="number" name="every" min="1" step="1" required>
+          <select name="unit"><option value="1">minutes</option><option value="60">hours</option></select></label>
+        <p class="hint">At least 5 minutes: the scheduled task checks every 5 minutes.</p>
+      </div>
+      <div class="field" data-kinds="monthly">
+        <label>On day <input type="number" name="day" min="1" max="28" step="1" required> of the month</label>
+      </div>
+      <div class="field" data-kinds="daily monthly">
+        <label>At <input type="time" name="at" required> Brussels time</label>
+        <p class="hint">A run missed while the PC was off happens at the next check.</p>
+      </div>
+      <div class="field" id="sd-window">
+        <label>Re-check the last <input type="number" name="window" min="1" max="365" step="1"> days</label>
+        <p class="hint">How far back each run fetches again to pick up revised values. Empty: the default.</p>
+      </div>
+      <p class="hint" id="sd-default"></p>
+      <p class="form-error" id="sd-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="quiet" data-sd="defaults">Use defaults</button>
+        <span class="spacer"></span>
+        <button type="button" class="quiet" data-sd="cancel">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
   <footer class="muted small">
     Data in <code id="data-dir"></code>. Times in Brussels time. Status refreshes every few seconds, the live feed every second.
-    Actions start the normal <code>toeval</code> commands; pausing edits <code>sources.toml</code>.
+    Actions start the normal <code>toeval</code> commands; pausing and schedules edit <code>sources.toml</code>.
   </footer>
 
   <script src="/static/app.js"></script>

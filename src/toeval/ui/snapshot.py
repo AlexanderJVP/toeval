@@ -78,6 +78,7 @@ def _snapshot(
                 "stream": s.stream,
                 "schedule": describe_schedule(spec),
                 "paused": spec.paused,
+                "settings": stream_settings(spec, pipeline.default_spec(s.source).stream(s.stream)),
                 "watermark": wm.serialize() if wm else None,
                 "data_until": _iso(data_until),
                 "data_age_hours": _hours(now - data_until) if data_until else None,
@@ -186,6 +187,35 @@ def describe_schedule(stream: StreamSpec) -> str:
     if isinstance(sched, MonthlySchedule):
         return f"monthly on day {sched.day} at {sched.at:%H:%M}"
     return str(sched)  # pragma: no cover
+
+
+def schedule_fields(stream: StreamSpec) -> Json:
+    """The schedule as the console's editor fields (times are Brussels wall-clock)."""
+    sched = stream.schedule
+    if isinstance(sched, IntervalSchedule):
+        return {"kind": "interval", "every_minutes": round(sched.every.total_seconds() / 60)}
+    if isinstance(sched, DailySchedule):
+        return {"kind": "daily", "at": f"{sched.at:%H:%M}"}
+    if isinstance(sched, MonthlySchedule):
+        return {"kind": "monthly", "day": sched.day, "at": f"{sched.at:%H:%M}"}
+    raise TypeError(sched)  # pragma: no cover
+
+
+def stream_settings(effective: StreamSpec, default: StreamSpec) -> Json:
+    """What the schedule editor shows: the effective values and the connector's defaults."""
+
+    def days(d: timedelta | None) -> float | None:
+        return None if d is None else d.total_seconds() / 86400
+
+    return {
+        "schedule": schedule_fields(effective),
+        "revision_window_days": days(effective.revision_window),
+        "default_schedule": schedule_fields(default),
+        "default_schedule_text": describe_schedule(default),
+        "default_revision_window_days": days(default.revision_window),
+        "customized": (effective.schedule, effective.revision_window)
+        != (default.schedule, default.revision_window),
+    }
 
 
 def read_lock(path: Path) -> Json | None:

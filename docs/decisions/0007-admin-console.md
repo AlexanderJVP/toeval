@@ -1,6 +1,6 @@
 # 0007. A local admin console that never becomes a second writer
 
-- Status: accepted (steps 1–3 of 4 built: status page, live run feed, actions)
+- Status: accepted (all 4 steps built: status page, live run feed, actions, schedule editor)
 - Date: 2026-10-19
 
 ## Context
@@ -27,6 +27,10 @@ This is a private operations tool on the owner's laptop, separate from the plann
   - One job at a time, and none while the lock is held by a live process (409). A scheduled run can still take the lock first; the job then exits 3 and the page says so.
   - *Pause / resume* (the "break connection" request) sets or removes `paused = true` under `[<source>.streams.<stream>]` in `sources.toml`. `run-due` skips paused streams; explicit `ingest` and `backfill` still run them, because asking for a run by name is a clear intent. Paused streams are never "overdue", but show as a warning, since their data goes stale. The same edit is available as `toeval pause/resume`.
   - Edits to `sources.toml` keep comments and formatting (tomlkit), are validated exactly like a run validates the file (`pipeline.resolve_specs`) before anything is written, and replace the file atomically, so a run never reads a half-written or invalid file.
+- **Schedule editor (step 4):** a dialog per stream edits its `schedule` (every N minutes/hours, daily at a Brussels time, or monthly on day 1–28) and, for streams that have one, its `revision_window` in whole days. It posts the full desired values to `/api/actions/schedule`, which writes them to `[<source>.streams.<stream>]` with the same validated, atomic edit as pausing.
+  - A value equal to the connector's default **removes** the override instead of writing it, so `sources.toml` only holds real deviations and a later change of the default in code still applies. "Use defaults" refills the form with them.
+  - Intervals under 5 minutes are refused: `run-due` only ticks every 5 minutes, so a shorter interval would only look shorter. Days above 28 are refused, as by `MonthlySchedule`, so the day exists in every month.
+  - The new schedule takes effect at the next `run-due` tick: `next_due` is computed from the last success and the schedule as it is then. Deep re-fetch settings and the HTTP policy stay file-only; they are rarely changed, and a form for every knob would hide the few that matter.
 - **The console logs to its terminal only.** Holding `data/logs/toeval.log` open in the long-running console process would make the pipeline's log rotation fail on Windows.
 - **Live progress** can't come from the state DB, which a run holds for its whole duration. The process holding the ingest lock appends **progress events** to `data/state/events.jsonl` (`toeval/events.py`): `run_started`, `planned`, `request_started`, `request_done` (rows, and whether the batch was stored, unchanged, not modified or quarantined), `run_finished`, `transform_started`, `model_built`, `transform_finished`, and `idle` once the state DB is closed. The console tails the file (`/api/events?cursor=`) every second.
   - Events are informational: the state DB stays the source of truth, and a failure to write an event never fails a run.
@@ -40,7 +44,7 @@ This is a private operations tool on the owner's laptop, separate from the plann
 1. Read-only status page (built).
 2. Live run feed (built): progress events, a data-flow diagram and a feed.
 3. Actions (built): fetch now, pause/resume a stream, rebuild.
-4. Schedule editor writing `sources.toml`.
+4. Schedule editor (built): schedule and revision window per stream, written to `sources.toml`.
 
 "Add stream" is limited to what configuration can express: a new *source* needs a connector, because every API differs.
 
