@@ -198,8 +198,7 @@ def _transform(
     con.close()  # release the temporary files before moving them
 
     try:
-        for tmp, final in staged:
-            os.replace(tmp, final)
+        _swap(staged)
     finally:
         for tmp, _ in staged:
             tmp.unlink(missing_ok=True)
@@ -208,6 +207,34 @@ def _transform(
         level = logging.INFO if q.ok else logging.WARNING
         log.log(level, "quality %s %s: %s", q.check, q.subject, q.summary)
     return TransformResult(tuple(built), tuple(skipped), tuple(results))
+
+
+def _swap(staged: list[tuple[Path, Path]]) -> None:
+    """Move every new output in, or none of them.
+
+    Each current output is renamed to `.bak` first; on Windows that fails while another program
+    holds the file open, before anything changed. Only then are the new files moved in, and any
+    error restores the backups.
+    """
+    backups: list[tuple[Path, Path]] = []  # (bak, final)
+    moved: list[Path] = []
+    try:
+        for _, final in staged:
+            if final.exists():
+                bak = final.with_name(final.name + ".bak")
+                os.replace(final, bak)
+                backups.append((bak, final))
+        for tmp, final in staged:
+            os.replace(tmp, final)
+            moved.append(final)
+    except BaseException:
+        for final in moved:
+            final.unlink(missing_ok=True)
+        for bak, final in backups:
+            os.replace(bak, final)
+        raise
+    for bak, _ in backups:
+        bak.unlink(missing_ok=True)
 
 
 def _register_raw(con: duckdb.DuckDBPyConnection, settings: Settings) -> set[str]:

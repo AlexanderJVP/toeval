@@ -1,5 +1,6 @@
 """Staging, marts and quality checks over synthetic raw files with Elia's real schemas."""
 
+import os
 import uuid
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
@@ -458,3 +459,33 @@ def test_failed_swap_keeps_all_old_outputs_and_records_the_failure(
     assert status.last_success_started_at == day1
     assert query(con, settings, "stg_elia_load", "SELECT DISTINCT load_mw FROM {model}") == [(1.0,)]
     assert not list(settings.data_path.rglob("*.tmp"))
+
+
+def test_a_swap_failing_halfway_restores_every_old_output(
+    settings: Settings,
+    store: StateStore,
+    raw: Raw,
+    con: duckdb.DuckDBPyConnection,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    day1 = DAY0 + timedelta(days=1)
+    raw.all_streams(DAY0, day1, constant(1.0), at=day1)
+    run(settings, store, day1)
+    raw.write("load", load_rows(DAY0, day1, constant(2.0)), at=day1 + timedelta(hours=1), key="new")
+    real_replace = os.replace
+
+    def mart_locked(src: str | Path, dst: str | Path) -> None:
+        # Staging files are already in place when the first mart fails to move in.
+        if Path(src).name.endswith(".tmp") and Path(dst).name.startswith("mart_"):
+            raise PermissionError(f"[WinError 32] file in use: {dst}")
+        real_replace(src, dst)
+
+    monkeypatch.setattr("toeval.warehouse.transform.os.replace", mart_locked)
+    with pytest.raises(PermissionError):
+        run(settings, store, day1 + timedelta(hours=1))
+
+    assert query(con, settings, "stg_elia_load", "SELECT DISTINCT load_mw FROM {model}") == [(1.0,)]
+    measured = "SELECT DISTINCT load_mw FROM {model} WHERE load_mw IS NOT NULL"
+    assert query(con, settings, "mart_energy_15min", measured) == [(1.0,)]
+    assert not list(settings.data_path.rglob("*.tmp"))
+    assert not list(settings.data_path.rglob("*.bak"))
