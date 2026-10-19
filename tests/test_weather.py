@@ -12,7 +12,7 @@ import pytest
 
 from test_transform import DAY0, load_rows, solar_rows, wind_rows
 from toeval.config import Settings
-from toeval.connectors.openmeteo import SCHEMA, VARIABLES
+from toeval.connectors.openmeteo import LOCATIONS, SCHEMA, VARIABLES
 from toeval.pipeline import Pipeline
 from toeval.state import StateStore
 from toeval.warehouse.raw import RawWriter
@@ -281,3 +281,43 @@ def test_sources_toml_limits_reach_the_checks(
     result = Pipeline(settings, store, clock=lambda: end + timedelta(days=2)).transform()
 
     assert not quality(result, "freshness").ok
+
+
+# -- energy + weather ----------------------------------------------------------------------------
+
+
+def test_combined_table_has_every_energy_hour_with_land_means_and_offshore_wind(
+    settings: Settings, store: StateStore, raw: Raw, con: duckdb.DuckDBPyConnection
+) -> None:
+    land = [loc.name for loc in LOCATIONS if loc.name != "offshore"]
+    assert len(land) == 6  # energy_weather_hourly.sql requires all 6 for a land mean
+    now = DAY0 + timedelta(days=1)
+    for name in ("load", "wind", "solar"):
+        make = {"load": load_rows, "wind": wind_rows, "solar": solar_rows}[name]
+        raw.write("elia", name, make(DAY0, now, lambda _t: 100.0), at=now)
+    weather_end = DAY0 + 4 * H  # ERA5 is behind: weather for the first 3 hours only
+    for i, name in enumerate(land):
+        raw.weather(weather_rows(DAY0, weather_end, lambda _t, i=i: {
+            "temperature_2m": float(10 + i), "wind_speed_100m": 5.0, "wind_direction_100m": 270.0,
+        }, location=name), at=now)  # fmt: skip
+    raw.weather(weather_rows(DAY0, weather_end, lambda _t: {
+        "wind_speed_100m": 12.0, "wind_direction_100m": 225.0,
+    }), at=now)  # fmt: skip
+    # One land point lacks one snapshot: the land mean of the two hours around it is NULL.
+    raw.weather(weather_rows(DAY0 + 2 * H, DAY0 + 3 * H, lambda _t: {
+        "temperature_2m": None, "wind_speed_100m": 5.0, "wind_direction_100m": 270.0,
+    }, location="libramont"), at=now + H)  # fmt: skip
+
+    transform(settings, store, now=now)
+
+    out = rows(con, settings, "mart_energy_weather_hourly",
+               "SELECT load_mw, temperature_2m_c, wind_speed_100m_ms, "
+               "offshore_wind_speed_100m_ms, round(offshore_wind_direction_100m_deg, 6), "
+               "weather_land_points FROM {model} ORDER BY hour_start_utc")  # fmt: skip
+    assert len(out) == 24  # every energy hour
+    assert out[0] == (100.0, 12.5, 5.0, 12.0, 225.0, 6)  # mean of 10..15
+    # Libramont's 02:00 temperature is missing: no land temperature for the hours either side,
+    # but the other variables keep their land means.
+    assert (out[1][1], out[1][2], out[1][5]) == (None, 5.0, 5)
+    assert (out[2][1], out[2][2], out[2][5]) == (None, 5.0, 5)
+    assert out[3] == (100.0, None, None, None, None, 0)  # energy only: no weather yet

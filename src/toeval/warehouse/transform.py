@@ -76,6 +76,12 @@ MODELS = (
     ),
     Model("mart_energy_hourly", "marts", "marts/energy_hourly.sql", ("mart_energy_15min",)),
     Model("mart_weather_hourly", "marts", "marts/weather_hourly.sql", ("stg_openmeteo_hourly",)),
+    Model(
+        "mart_energy_weather_hourly",
+        "marts",
+        "marts/energy_weather_hourly.sql",
+        ("mart_energy_hourly", "mart_weather_hourly"),
+    ),
 )
 
 # Check name -> subject ("<source>/<stream>") -> the highest value that is still ok.

@@ -1,6 +1,6 @@
 # 0008. Open-Meteo ERA5 weather for 7 points around Belgium
 
-- Status: accepted (steps 1 and 2 of 3 built: connector, staging, weather mart, per-stream quality limits; the stream is still paused)
+- Status: accepted (all 3 steps built; history loaded 2026-10-20)
 - Date: 2026-10-19
 
 ## Context
@@ -77,7 +77,12 @@ The offshore point is the built-in check of this: Elia's offshore wind output sh
 - **Real data, 2026-03 → 2026-09, against the warehouse's Elia offshore output** (one-off scripts, ~16 API calls):
   - At 15-minute resolution, the correlation between Elia's offshore quarter-hours and the raw ERA5 snapshots peaks **+7.5 min** from the quarter's centre, for both the offshore and the Ostend cell. So the timestamps line up to within one quarter-hour: ERA5 snapshots are instantaneous at `time`, and Elia's `datetime` is the interval start.
   - Through `mart_weather_hourly`, lag 0 beats both neighbours in every variant (speed or speed³, with or without a < 11 m/s filter for output below rated power). Example, speed, all hours: −1 h 0.864, **0 h 0.878**, +1 h 0.875. Over June–September only, lags 0 and +1 tied (0.7478 each).
-  - So the alignment is right, but "lag 0 beats ±1" is **too weak a criterion to automate on real data**. Wind is strongly autocorrelated, and the curve drops only ~0.01 per hour of shift. The robust real-data check is the position of the 15-minute peak. Re-run it on the full history in step 3.
+  - Over 7 months the margin is small: wind is strongly autocorrelated, and the curve drops only ~0.01 per hour of shift. So "lag 0 beats ±1" is too weak to automate on a few months of data. The robust check is the position of the 15-minute peak.
+- **Real data, full history 2015 → 2026-10 (step 3):**
+  - The 15-minute peak is centred on 0: −7.5 min 0.7029, +7.5 min 0.7025 (offshore cell, 74,810 hours below 11 m/s).
+  - In `mart_energy_weather_hourly`, Elia's total wind output vs offshore 100 m wind: −1 h 0.810, **0 h 0.813**, +1 h 0.807.
+  - Offshore output vs offshore wind, lag 0 beats both ±1 in **every year from 2015 to 2026**.
+  - The alignment is confirmed. The check is a one-off; the API's time convention is guarded by `parse` (GMT offset, units).
 
 ### Rollout
 
@@ -105,4 +110,4 @@ The scheduled task runs the working copy. Registering the source would start the
 
 1. Connector, recorded fixture, tests, this ADR; stream registered but paused (built).
 2. `stg_openmeteo_hourly`, `mart_weather_hourly` (long format: one row per location and hour) with the alignment above, per-stream freshness and `revision_lag` thresholds, and the alignment tests (built).
-3. Download the history (resume the stream), the combined energy and weather hourly table, and the console showing the new source.
+3. History downloaded on 2026-10-20: 12 requests in 4 min 50 s, 723,240 rows (7 points × 103,320 hours, 2014-12-31 → 2026-10-13 23:00), 0 gaps, 0 duplicates. Run as an explicit `ingest` while the stream was still paused, so a scheduled tick couldn't start a second one; resumed afterwards. `mart_energy_weather_hourly`: one row per hour of `mart_energy_hourly` with the land mean of the 6 land points (NULL unless all 6 have a value) and the offshore wind kept separate. The console shows the new source and marts (built).

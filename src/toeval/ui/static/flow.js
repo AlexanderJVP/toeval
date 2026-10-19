@@ -130,7 +130,10 @@ function handle(e, animate) {
       live.transform = { phase: "running", built: 0, total: e.models, since: e.at };
       break;
     case "model_built":
-      if (live.transform) Object.assign(live.transform, { built: live.transform.built + 1, current: e.model });
+      if (live.transform) {
+        Object.assign(live.transform, { built: live.transform.built + 1, current: e.model });
+        if (e.layer === "marts") live.transform.marts = true;
+      }
       if (animate) {
         const toMarts = e.layer === "marts";
         spawn($(toMarts ? "pipe-staging-marts" : "pipe-raw-staging"), dots(e.rows), "ok", () => {
@@ -286,7 +289,7 @@ function renderFlow() {
   const t = live.transform;
   const transforming = busy && t && t.phase === "running";
   $("pipe-raw-staging").classList.toggle("active", !!transforming);
-  $("pipe-staging-marts").classList.toggle("active", !!transforming && t.built >= 3);
+  $("pipe-staging-marts").classList.toggle("active", !!transforming && !!t.marts);
   for (const l of LAYERS) $(`node-${l.id}`).classList.toggle("active", !!transforming && l.id !== "raw");
   const anyFetching = busy && Object.values(live.streams).some((s) => s.phase === "fetching");
   $("node-raw").classList.toggle("active", anyFetching);
@@ -299,7 +302,7 @@ function renderFlow() {
   }
   $("note-raw").textContent = anyFetching ? "receiving…" : "every version";
   $("note-staging").textContent = transforming ? `building ${t.built}/${t.total}` : "latest per key";
-  $("note-marts").textContent = transforming && t.built >= 3 ? "building…" : "15 min · hourly";
+  $("note-marts").textContent = transforming && t.marts ? "building…" : "energy · weather";
 
   const state = $("flow-state");
   if (busy) {
