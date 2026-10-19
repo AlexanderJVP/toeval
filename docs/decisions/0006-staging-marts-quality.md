@@ -16,7 +16,7 @@ Measured on the real data on 2026-10-19 (5.4 M raw rows): a full rebuild of all 
 
 `toeval transform` (and `run-due` / `ingest` after anything was written) rebuilds every model from raw (`src/toeval/warehouse/transform.py`). At 9 s, incremental merge logic would cost more complexity than it saves. Each model runs as `COPY (<sql>) TO <tmp>` in an in-memory DuckDB, downstream models read the temporary files, and only when every model and check succeeded are all files swapped in: `data/staging/stg_*.parquet`, `data/marts/mart_*.parquet`. A failure leaves all previous outputs in place, never fresh staging next to stale marts. Every attempt is recorded in the state DB's `transforms` table, and a failed one is retried with backoff (ADR 0005).
 
-SQL files reference only view names: `raw_<source>_<stream>` (every file under `raw/<source>/<stream>/`, never quarantine), `stg_*` and `mart_*`. Paths are bound in Python. A model whose inputs were never ingested is skipped. `run-due` transforms only when raw changed, or when a buildable model has no output yet.
+SQL files reference only view names: `raw_<source>_<stream>` (every file under `raw/<source>/<stream>/`, never quarantine), `stg_*` and `mart_*`. Paths are bound in Python. A model whose inputs were never ingested is skipped. `run-due` transforms when raw changed, when a buildable model has no output yet, or when raw is newer than the last successful transform (a failed transform is retried with the backoff of ADR 0005, `Pipeline.needs_transform`).
 
 ### Staging (`sql/staging/`)
 

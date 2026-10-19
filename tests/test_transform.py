@@ -457,6 +457,8 @@ def test_failed_swap_keeps_all_old_outputs_and_records_the_failure(
     assert (status.last_status, status.consecutive_failures) == ("failed", 1)
     assert "WinError 32" in (status.last_error or "")
     assert status.last_success_started_at == day1
+    assert status.last_failure_at is not None
+    assert status.last_failure_at > day1 + timedelta(hours=1)  # when it ended, not started
     assert query(con, settings, "stg_elia_load", "SELECT DISTINCT load_mw FROM {model}") == [(1.0,)]
     assert not list(settings.data_path.rglob("*.tmp"))
 

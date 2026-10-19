@@ -128,6 +128,10 @@ def transform(
     stale marts. A failure is recorded and re-raised; `Pipeline.needs_transform` retries it.
     """
     started = time.monotonic()
+
+    def finished() -> datetime:  # `now` is the start; the caller's clock may be a fake one
+        return now + timedelta(seconds=time.monotonic() - started)
+
     transform_id = store.start_transform(now)
     events.emit("transform_started", models=len(MODELS))
     built: list[str] = []
@@ -135,7 +139,7 @@ def transform(
         result = _transform(settings, store, now, revision_window, built, events)
     except BaseException as exc:
         error = f"{type(exc).__name__}: {exc}"
-        store.finish_transform(transform_id, now, models_built=0, error=error)
+        store.finish_transform(transform_id, finished(), models_built=0, error=error)
         events.emit(
             "transform_finished",
             status="failed",
@@ -143,7 +147,7 @@ def transform(
             error=error,
         )
         raise
-    store.finish_transform(transform_id, now, models_built=len(built))
+    store.finish_transform(transform_id, finished(), models_built=len(built))
     duration = time.monotonic() - started
     events.emit(
         "transform_finished",
