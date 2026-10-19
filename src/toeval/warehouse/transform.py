@@ -5,14 +5,17 @@ each model's SQL (in `sql/`) runs in an in-memory DuckDB over Parquet views and 
 one Parquet file, replaced atomically. SQL files only reference view names
 (`raw_<source>_<stream>`, `stg_*`, `mart_*`), never paths, so they port to another engine.
 
-Quality checks are SQL too (`sql/quality/<check>.sql`, returning subject/value/details). They warn
-instead of failing: the data is what the source published, and hard checks already ran at
-ingestion. Results are logged and stored in the state DB (`quality_results`).
+Quality checks are SQL too (`sql/quality/<source>/<check>.sql`, returning subject/value/details,
+where subject is "<source>/<stream>"). They warn instead of failing: the data is what the source
+published, and hard checks already ran at ingestion. Thresholds are fixed per check or come from
+each stream's spec (`freshness_limit`, `revision_lag_limit`). Results are logged and stored in the
+state DB (`quality_results`).
 """
 
 import logging
 import os
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from importlib.resources import files
@@ -21,6 +24,7 @@ from pathlib import Path
 import duckdb
 
 from toeval.config import Settings
+from toeval.connectors.spec import StreamSpec
 from toeval.events import NULL_SINK, EventSink
 from toeval.state import QualityResult, StateStore
 
@@ -47,12 +51,23 @@ class RawInput:
         return f"raw_{self.source}_{self.stream}"
 
 
-RAW_INPUTS = (RawInput("elia", "load"), RawInput("elia", "wind"), RawInput("elia", "solar"))
+RAW_INPUTS = (
+    RawInput("elia", "load"),
+    RawInput("elia", "wind"),
+    RawInput("elia", "solar"),
+    RawInput("openmeteo", "hourly"),
+)
 
 MODELS = (
     Model("stg_elia_load", "staging", "staging/elia_load.sql", ("raw_elia_load",)),
     Model("stg_elia_wind", "staging", "staging/elia_wind.sql", ("raw_elia_wind",)),
     Model("stg_elia_solar", "staging", "staging/elia_solar.sql", ("raw_elia_solar",)),
+    Model(
+        "stg_openmeteo_hourly",
+        "staging",
+        "staging/openmeteo_hourly.sql",
+        ("raw_openmeteo_hourly",),
+    ),
     Model(
         "mart_energy_15min",
         "marts",
@@ -60,29 +75,69 @@ MODELS = (
         ("stg_elia_load", "stg_elia_solar", "stg_elia_wind"),
     ),
     Model("mart_energy_hourly", "marts", "marts/energy_hourly.sql", ("mart_energy_15min",)),
+    Model("mart_weather_hourly", "marts", "marts/weather_hourly.sql", ("stg_openmeteo_hourly",)),
 )
+
+# Check name -> subject ("<source>/<stream>") -> the highest value that is still ok.
+Limits = Mapping[str, Mapping[str, float]]
+PER_STREAM = None  # Check.max_ok of checks whose threshold comes from each stream's spec
 
 
 @dataclass(frozen=True)
 class Check:
-    name: str  # sql/quality/<name>.sql
-    max_ok: float  # value <= max_ok is ok, otherwise a warning
+    source: str  # sql/quality/<source>/<name>.sql
+    name: str
     unit: str
     inputs: tuple[str, ...]
+    max_ok: float | None = 0  # value <= max_ok is ok, otherwise a warning
+
+    def limit(self, subject: str, limits: Limits) -> float:
+        if self.max_ok is not None:
+            return self.max_ok
+        try:
+            return limits[self.name][subject]
+        except KeyError:
+            raise KeyError(f"quality {self.name}: no limit for subject {subject!r}") from None
 
 
-def checks(revision_window: timedelta) -> tuple[Check, ...]:
-    stg = ("stg_elia_load", "stg_elia_wind", "stg_elia_solar")
-    raw = tuple(r.view for r in RAW_INPUTS)
-    return (
-        Check("duplicate_keys", 0, "rows", stg),
-        Check("grid_gaps", 0, "quarter-hours", stg),
-        Check("measured_holes", 0, "quarter-hours", ("mart_energy_15min",)),
-        Check("wind_parts", 0, "quarter-hours", ("mart_energy_15min",)),
-        # Wind and solar end at the last completed Brussels day, fetched daily at 12:00.
-        Check("freshness", 72, "hours", ("mart_energy_15min",)),
-        # Warn once revisions reach 80% of the window: the window may then be too short.
-        Check("revision_lag", 0.8 * revision_window / timedelta(days=1), "days", raw),
+_ELIA_STG = ("stg_elia_load", "stg_elia_wind", "stg_elia_solar")
+CHECKS = (
+    Check("elia", "duplicate_keys", "rows", _ELIA_STG),
+    Check("elia", "grid_gaps", "quarter-hours", _ELIA_STG),
+    Check("elia", "measured_holes", "quarter-hours", ("mart_energy_15min",)),
+    Check("elia", "wind_parts", "quarter-hours", ("mart_energy_15min",)),
+    Check("elia", "freshness", "hours", ("mart_energy_15min",), PER_STREAM),
+    Check(
+        "elia",
+        "revision_lag",
+        "days",
+        ("raw_elia_load", "raw_elia_wind", "raw_elia_solar"),
+        PER_STREAM,
+    ),
+    Check("openmeteo", "duplicate_keys", "rows", ("stg_openmeteo_hourly",)),
+    Check("openmeteo", "grid_gaps", "hours", ("stg_openmeteo_hourly",)),
+    Check("openmeteo", "freshness", "hours", ("stg_openmeteo_hourly",), PER_STREAM),
+    Check("openmeteo", "revision_lag", "days", ("raw_openmeteo_hourly",), PER_STREAM),
+)
+
+
+def quality_limits(streams: Mapping[str, StreamSpec]) -> dict[str, dict[str, float]]:
+    """The per-stream thresholds from each stream's (effective) spec, keyed like the checks'
+    subjects: "<source>/<stream>"."""
+    limits: dict[str, dict[str, float]] = {"freshness": {}, "revision_lag": {}}
+    for subject, spec in streams.items():
+        limits["freshness"][subject] = spec.freshness_limit / timedelta(hours=1)
+        if (lag := spec.revision_lag_max()) is not None:
+            limits["revision_lag"][subject] = lag / timedelta(days=1)
+    return limits
+
+
+def default_limits() -> dict[str, dict[str, float]]:
+    """The limits of the connectors' default specs (without sources.toml overrides)."""
+    from toeval.connectors.registry import CONNECTORS
+
+    return quality_limits(
+        {f"{name}/{s.name}": s for name, cls in CONNECTORS.items() for s in cls.spec.streams}
     )
 
 
@@ -118,7 +173,7 @@ def transform(
     store: StateStore,
     *,
     now: datetime,
-    revision_window: timedelta = timedelta(days=14),
+    limits: Limits | None = None,
     events: EventSink = NULL_SINK,
 ) -> TransformResult:
     """Rebuild every model, run the checks, and record the attempt in `transforms`.
@@ -126,7 +181,10 @@ def transform(
     All outputs are written to temporary files first and only then swapped in, so a failure
     (e.g. another program holding a mart file open on Windows) never leaves fresh staging next to
     stale marts. A failure is recorded and re-raised; `Pipeline.needs_transform` retries it.
+
+    `limits` are the per-stream quality thresholds (`quality_limits`); default: the connectors'.
     """
+    limits = default_limits() if limits is None else limits
     started = time.monotonic()
 
     def finished() -> datetime:  # `now` is the start; the caller's clock may be a fake one
@@ -136,7 +194,7 @@ def transform(
     events.emit("transform_started", models=len(MODELS))
     built: list[str] = []
     try:
-        result = _transform(settings, store, now, revision_window, built, events)
+        result = _transform(settings, store, now, limits, built, events)
     except BaseException as exc:
         error = f"{type(exc).__name__}: {exc}"
         store.finish_transform(transform_id, finished(), models_built=0, error=error)
@@ -165,7 +223,7 @@ def _transform(
     settings: Settings,
     store: StateStore,
     now: datetime,
-    revision_window: timedelta,
+    limits: Limits,
     built: list[str],
     events: EventSink,
 ) -> TransformResult:
@@ -191,9 +249,9 @@ def _transform(
 
         con.execute("SET VARIABLE now = ?", [now.isoformat()])
         results = []
-        for check in checks(revision_window):
+        for check in CHECKS:
             if set(check.inputs) <= available:
-                results.extend(_run_check(con, check, now))
+                results.extend(_run_check(con, check, now, limits))
     except BaseException:
         con.close()
         for tmp, _ in staged:
@@ -272,8 +330,10 @@ def _build(con: duckdb.DuckDBPyConnection, settings: Settings, model: Model) -> 
     return tmp, int(rows)
 
 
-def _run_check(con: duckdb.DuckDBPyConnection, check: Check, now: datetime) -> list[QualityResult]:
-    query = (SQL / "quality" / f"{check.name}.sql").read_text(encoding="utf-8")
+def _run_check(
+    con: duckdb.DuckDBPyConnection, check: Check, now: datetime, limits: Limits
+) -> list[QualityResult]:
+    query = (SQL / "quality" / check.source / f"{check.name}.sql").read_text(encoding="utf-8")
     rows = con.execute(f"SELECT subject, value, details FROM ({query})").fetchall()
     return [
         QualityResult(
@@ -282,7 +342,7 @@ def _run_check(con: duckdb.DuckDBPyConnection, check: Check, now: datetime) -> l
             subject=subject,
             value=None if value is None else float(value),
             unit=check.unit,
-            ok=value is not None and value <= check.max_ok,
+            ok=value is not None and value <= check.limit(subject, limits),
             details=details or "",
         )
         for subject, value, details in rows
@@ -298,4 +358,12 @@ def _quote(s: str) -> str:
     return s.replace("'", "''")
 
 
-__all__ = ["MODELS", "TransformResult", "checks", "outputs_missing", "transform"]
+__all__ = [
+    "CHECKS",
+    "MODELS",
+    "TransformResult",
+    "default_limits",
+    "outputs_missing",
+    "quality_limits",
+    "transform",
+]

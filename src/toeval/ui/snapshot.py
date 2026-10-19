@@ -19,12 +19,9 @@ from toeval.lock import pid_alive
 from toeval.pipeline import Pipeline
 from toeval.state import SCHEMA_VERSION, StateStore
 from toeval.ui.scheduler import TaskInfo
-from toeval.warehouse.transform import checks
 
 # A stream whose next run is this far in the past while nothing runs: the scheduler isn't working.
 OVERDUE_AFTER = timedelta(minutes=30)
-# The freshness quality check's threshold, so the page's freshness bars agree with it.
-FRESHNESS_WARN_HOURS = next(c.max_ok for c in checks(timedelta(days=14)) if c.name == "freshness")
 
 Json = dict[str, Any]
 
@@ -82,6 +79,8 @@ def _snapshot(
                 "watermark": wm.serialize() if wm else None,
                 "data_until": _iso(data_until),
                 "data_age_hours": _hours(now - data_until) if data_until else None,
+                # The freshness check's threshold, so the card's bar agrees with it.
+                "freshness_limit_hours": _hours(spec.freshness_limit),
                 "last_success_at": _iso(s.state.last_success_at),
                 "consecutive_failures": s.state.consecutive_failures,
                 "last_failure_at": _iso(s.state.last_failure_at),
@@ -125,7 +124,6 @@ def _snapshot(
         "recent_runs": [_run(r) for r in runs[:15]],
         "storage": storage(settings),
         "data_dir": str(settings.data_path),
-        "freshness_warn_hours": FRESHNESS_WARN_HOURS,
     }
     snapshot["health"] = health(snapshot)
     return snapshot
@@ -271,7 +269,6 @@ def _empty(
         "recent_runs": [],
         "storage": storage(settings),
         "data_dir": str(settings.data_path),
-        "freshness_warn_hours": FRESHNESS_WARN_HOURS,
     }
     snapshot["health"] = health(snapshot)
     return snapshot

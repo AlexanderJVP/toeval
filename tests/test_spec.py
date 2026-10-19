@@ -91,6 +91,22 @@ def test_deep_refetch_requires_a_revision_window() -> None:
         )
 
 
+def test_revision_lag_limit_defaults_to_80_percent_of_the_window() -> None:
+    def spec(**kwargs: object) -> StreamSpec:
+        return StreamSpec(name="x", schedule=IntervalSchedule(every="1d"),
+                          watermark=WatermarkKind.TIMESTAMP, natural_key=("t",), **kwargs)  # type: ignore[arg-type]  # fmt: skip
+
+    assert spec().revision_lag_max() is None
+    assert spec(revision_window="10d").revision_lag_max() == timedelta(days=8)
+    assert spec(revision_window="10d", revision_lag_limit="96d").revision_lag_max() == timedelta(
+        days=96
+    )
+    with pytest.raises(ValidationError, match="revision_lag_limit requires a revision_window"):
+        spec(revision_lag_limit="5d")
+    with pytest.raises(ValidationError, match="greater than 0"):
+        spec(freshness_limit="0h")
+
+
 def test_api_key_needs_exactly_one_location() -> None:
     with pytest.raises(ValidationError, match="exactly one"):
         ApiKeyAuth(env_var="K")

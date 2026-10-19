@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, step 1 of 3 built: connector, stream **paused** in the local `sources.toml` until step 3 downloads the history), then IRCEL-CELINE, a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, steps 1–2 of 3 built: connector, staging, `mart_weather_hourly`, per-stream quality limits; the stream stays **paused** in the local `sources.toml` until step 3 downloads the history), then IRCEL-CELINE, a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
 ## Commands
 
@@ -77,11 +77,11 @@ The interface must fit three source shapes without special cases: queryable hist
 
 ## Warehouse (`src/toeval/warehouse/`, ADR 0006)
 
-- `transform.py` rebuilds everything from raw on every run (~9 s on all of Elia). It runs the SQL in `sql/staging/`, `sql/marts/` and `sql/quality/` in an in-memory DuckDB, `SET TimeZone = 'UTC'`, and writes one Parquet file per model; all are swapped in only after every model and check succeeded (a failure keeps every old output): `data/staging/stg_elia_{load,wind,solar}.parquet`, `data/marts/mart_energy_{15min,hourly}.parquet`. Models and checks are listed in `MODELS` / `checks()`.
+- `transform.py` rebuilds everything from raw on every run (~9 s on all of Elia). It runs the SQL in `sql/staging/`, `sql/marts/` and `sql/quality/` in an in-memory DuckDB, `SET TimeZone = 'UTC'`, and writes one Parquet file per model; all are swapped in only after every model and check succeeded (a failure keeps every old output): `data/staging/stg_elia_{load,wind,solar}.parquet`, `stg_openmeteo_hourly.parquet`, `data/marts/mart_energy_{15min,hourly}.parquet`, `mart_weather_hourly.parquet`. Models and checks are listed in `MODELS` / `CHECKS`; a model or check whose inputs don't exist yet is skipped. A new source adds its `RawInput`, models and checks there.
 - SQL files reference only views (`raw_<source>_<stream>`, `stg_*`, `mart_*`); Python binds paths. Raw views read only `raw/` (never quarantine), with `filename = true, union_by_name = true`.
 - Staging = latest `_ingested_at` per natural key (`QUALIFY row_number()`), renamed columns with units, `interval_start_utc` as `TIMESTAMPTZ`.
 - Marts: gap-free 15-min grid (missing data = NULL row). Solar = `Belgium` row only. Wind = sum of the 5 parts, NULL unless all 5 are present (`wind_parts_present`). Hourly = mean of 4 quarters, NULL unless all 4 are present (`*_quarters`). Keys are UTC; `*_local` (Brussels) repeats in the fall-back hour. No imputation.
-- Quality checks **warn, never fail**. Each returns `subject, value, details`; the threshold is `Check.max_ok` in Python. Results go to the log, `toeval status` and `quality_results` in the state DB. `measured_holes` and `revision_lag` only warn on the last 30 days; known historical holes are listed in ADR 0006.
+- Quality checks **warn, never fail**. SQL is per source (`sql/quality/<source>/<check>.sql`); each returns `subject` (`<source>/<stream>`), `value`, `details`. The threshold is `Check.max_ok`, or per stream for `freshness` / `revision_lag` (`StreamSpec.freshness_limit` / `revision_lag_limit`, default 72 h / 80% of `revision_window`; `Pipeline.transform` passes the effective ones as `limits`, `transform()` defaults to the connectors'). The console's freshness bar uses the same per-stream limit. Results go to the log, `toeval status` and `quality_results` in the state DB. `measured_holes` and `revision_lag` only warn on the last 30 days; known historical holes are listed in ADR 0006.
 - Tests (`tests/test_transform.py`) build raw files with the recorded fixtures' exact schemas and write them through `RawWriter`.
 
 ## Elia API facts (verified 2026-10-18)
@@ -107,7 +107,8 @@ Implemented in `src/toeval/connectors/openmeteo.py`: source `openmeteo`, stream 
 - Limits 600 calls/min, 5,000/h, 10,000/day. A request costs one call per location per 2 weeks (more above 10 variables), so one yearly 7-location request ≈ 182 calls. Hence `requests_per_second=1/25`: a full backfill ≈ 2,150 calls in ~5 min. The per-minute limit is the binding one.
 - ERA5 runs ~5–6 days behind. Hours not covered yet come back as nulls (dropped in `fetch`), not an error. `start_date`/`end_date` are inclusive dates; a date after today is HTTP 400, so `plan` caps `end_date` at today.
 - `precipitation` and `shortwave_radiation` cover the hour *before* `time`; the other variables are instantaneous. Raw keeps API timestamps; the alignment to `hour_start_utc` belongs in the marts (rules in ADR 0008).
-- Step 2 must make `freshness` and `revision_lag` thresholds per stream and the quality SQL / `RAW_INPUTS` generic; they are Elia-only today.
+- `mart_weather_hourly` (one row per location and UTC hour `[h, h+1)`, gap-free per location): `precipitation` / `shortwave_radiation` from the value at h+1; snapshots averaged over h and h+1 (NULL unless both); wind direction from the mean u/v vector (NULL in calm air). Verified on synthetic and real data (ADR 0008, "Alignment, verified"): real ERA5 snapshots line up with Elia quarter-hours within 15 min.
+- Limits: freshness 8 days, `revision_lag` 96 days (80% of the 120-day deep re-check, which is what catches ERA5T corrections).
 
 ## Conventions
 

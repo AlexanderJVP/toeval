@@ -103,6 +103,12 @@ class OpenMeteoConnector(Connector):
                 # final values after 2-3 months; Open-Meteo doesn't document it. revision_lag
                 # will show whether it happens.
                 deep_refetch=DeepRefetch(every=timedelta(days=30), window=timedelta(days=120)),
+                # ERA5 is ~6 days behind and fetched daily: just before a run the latest value is
+                # ~6.5 days old. 8 days leaves a day for a late ERA5 update.
+                freshness_limit=timedelta(days=8),
+                # The deep re-check, not the 14-day window, is what catches ERA5T corrections, so
+                # warn at 80% of its window rather than of the daily one.
+                revision_lag_limit=timedelta(days=96),
                 # A day before Elia's first interval (2014-12-31 23:00 UTC), on a UTC-midnight
                 # grid so every window is a whole number of API dates.
                 backfill_start=datetime(2014, 12, 31, tzinfo=UTC),

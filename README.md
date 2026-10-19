@@ -9,7 +9,7 @@ Two projects will sit on top of it:
 1. **A spurious correlation tracker** that hunts for absurd correlations across datasets, then tracks week by week how they fall apart on new data. Playful tone, rigorous statistics.
 2. **JEPA on unlabeled time series:** self-supervised pretraining on the warehouse, benchmarked honestly against simple baselines trained on the same few labels.
 
-**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is built; its staging and history download follow.
+**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is built, with staging and an hourly weather mart; its history download follows.
 
 ## What's in the warehouse
 
@@ -25,10 +25,11 @@ Two projects will sit on top of it:
 
 - `mart_energy_15min`: national load, solar and wind (measured and day-ahead forecast) per quarter-hour on a gap-free grid.
 - `mart_energy_hourly`: the same per hour, NULL unless all four quarter-hours are present.
+- `mart_weather_hourly`: weather per location and hour, aligned to the same hour intervals (see below).
 
 For 2025 the mart gives a Belgian load of 80.2 TWh, solar 10.2 TWh and wind 12.0 TWh.
 
-[Open-Meteo](https://open-meteo.com) serves hourly ERA5 reanalysis weather. `openmeteo/hourly` covers 7 points: Antwerp, Brussels, Ghent, Liège, Ostend, Libramont (Ardennes) and the Belgian offshore wind zone. It has 9 variables (temperature, humidity, precipitation, cloud cover, pressure, wind at 10 m and 100 m, wind direction, solar radiation). ERA5 runs ~5–6 days behind real time ([ADR 0008](docs/decisions/0008-open-meteo-weather.md)). The connector is built; the stream stays paused until staging exists.
+[Open-Meteo](https://open-meteo.com) serves hourly ERA5 reanalysis weather. `openmeteo/hourly` covers 7 points: Antwerp, Brussels, Ghent, Liège, Ostend, Libramont (Ardennes) and the Belgian offshore wind zone. It has 9 variables (temperature, humidity, precipitation, cloud cover, pressure, wind at 10 m and 100 m, wind direction, solar radiation). ERA5 runs ~5–6 days behind real time ([ADR 0008](docs/decisions/0008-open-meteo-weather.md)). ERA5 values don't all mean the same thing at their timestamp: rain and solar radiation cover the hour before it, the rest are snapshots. `mart_weather_hourly` turns both into hour intervals like Elia's (preceding-hour values move back an hour, snapshots are averaged over the hour's two ends, wind direction comes from the mean wind vector). Against Elia's offshore wind output, real ERA5 timestamps line up within 15 minutes. The stream stays paused until its history download.
 
 ## Architecture
 
@@ -82,7 +83,7 @@ Raw is append-only: every fetch is kept, and a batch is skipped only when it pro
 
 ### Quality checks
 
-After every transform, six SQL checks run: duplicate keys, grid gaps, recent missing measurements, incomplete wind parts, freshness and revision lag. They **warn instead of failing**, since the hard checks already ran at ingestion, and their results are logged, stored and shown by `toeval status`.
+After every transform, SQL checks run per source: duplicate keys, grid gaps, recent missing measurements, incomplete wind parts, freshness and revision lag. Freshness and revision-lag limits are set per stream, because ERA5 is days behind by design. They **warn instead of failing**, since the hard checks already ran at ingestion, and their results are logged, stored and shown by `toeval status`.
 
 They found real issues in Elia's history (details in [ADR 0006](docs/decisions/0006-staging-marts-quality.md)):
 

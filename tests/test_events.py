@@ -11,7 +11,7 @@ from toeval.config import Settings
 from toeval.events import EventLog, read_events, rotated
 from toeval.state import StateStore
 from toeval.warehouse.raw import RawWriter
-from toeval.warehouse.transform import transform
+from toeval.warehouse.transform import MODELS, transform
 
 NOW = datetime(2026, 1, 20, 13, tzinfo=UTC)
 
@@ -187,6 +187,6 @@ def test_a_transform_reports_each_model(settings: Settings, store: StateStore) -
     assert recorder.types()[0] == "transform_started"
     built = [e for e in recorder.events if e["type"] == "model_built"]
     assert [(e["model"], e["rows"]) for e in built] == [("stg_elia_load", 4)]
-    assert recorder.types().count("model_skipped") == 4
+    assert recorder.types().count("model_skipped") == len(MODELS) - 1
     assert recorder.events[-1]["type"] == "transform_finished"
     assert recorder.events[-1]["status"] == "success"

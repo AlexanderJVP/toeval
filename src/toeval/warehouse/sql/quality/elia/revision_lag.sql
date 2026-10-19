@@ -3,7 +3,7 @@
 -- previous raw version, which already had one (first measurements are not revisions).
 -- value = age in days of the oldest interval revised in the last 30 days (by ingestion time), at
 -- the time of the revision. It warns when revisions come close to the edge of the revision
--- window (threshold in transform.py). Only recent revisions count, so one old outlier doesn't
+-- window (threshold: StreamSpec.revision_lag_max()). Only recent revisions count, so one old outlier doesn't
 -- warn forever; the all-time maximum is in the details. Revisions older than the window are
 -- only seen by the monthly deep re-fetch.
 WITH versions AS (

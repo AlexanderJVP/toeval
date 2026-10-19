@@ -1,6 +1,6 @@
 # 0008. Open-Meteo ERA5 weather for 7 points around Belgium
 
-- Status: accepted (step 1 of 3 built: connector and raw data; the stream starts paused)
+- Status: accepted (steps 1 and 2 of 3 built: connector, staging, weather mart, per-stream quality limits; the stream is still paused)
 - Date: 2026-10-19
 
 ## Context
@@ -69,7 +69,15 @@ Raw keeps the API's timestamps unchanged. Elia's hourly mart is keyed by `hour_s
 - **Instantaneous values** (temperature, humidity, cloud cover, pressure, wind speed) at `time` are snapshots. The hour `[h, h+1)` gets the **mean of the snapshots at h and h+1**, the trapezoid estimate of the hour's mean, so these line up with the same interval as Elia's mean of four quarters. The hour is NULL unless both snapshots exist.
 - **Wind direction** can't be averaged as a number (350° and 10° average to 180°). It is the direction of the mean wind vector: average the u/v components of the two snapshots (weighted by speed), then `atan2`.
 
-The offshore point is the built-in check of this: Elia's offshore wind output should follow offshore `wind_speed_100m` closely. A one-hour misalignment shows up as a lower correlation at lag 0 than at lag ±1, which step 2 tests.
+The offshore point is the built-in check of this: Elia's offshore wind output should follow offshore `wind_speed_100m` closely, so a misalignment shows up as a better correlation at another lag.
+
+### Alignment, verified (step 2)
+
+- **Synthetic (`tests/test_weather.py`):** a known wind signal goes into Elia raw (as quarter-hour averages of power) and Open-Meteo raw (as hourly snapshots). Through the real SQL, lag 0 correlates > 0.98 and beats lags ±1 by > 0.05. Three deliberately wrong alignments (snapshot at h only, at h+1 only, everything an hour late) drop it to 0.65–0.86, so the test catches them.
+- **Real data, 2026-03 → 2026-09, against the warehouse's Elia offshore output** (one-off scripts, ~16 API calls):
+  - At 15-minute resolution, the correlation between Elia's offshore quarter-hours and the raw ERA5 snapshots peaks **+7.5 min** from the quarter's centre, for both the offshore and the Ostend cell. So the timestamps line up to within one quarter-hour: ERA5 snapshots are instantaneous at `time`, and Elia's `datetime` is the interval start.
+  - Through `mart_weather_hourly`, lag 0 beats both neighbours in every variant (speed or speed³, with or without a < 11 m/s filter for output below rated power). Example, speed, all hours: −1 h 0.864, **0 h 0.878**, +1 h 0.875. Over June–September only, lags 0 and +1 tied (0.7478 each).
+  - So the alignment is right, but "lag 0 beats ±1" is **too weak a criterion to automate on real data**. Wind is strongly autocorrelated, and the curve drops only ~0.01 per hour of shift. The robust real-data check is the position of the 15-minute peak. Re-run it on the full history in step 3.
 
 ### Rollout
 
@@ -85,12 +93,16 @@ The scheduled task runs the working copy. Registering the source would start the
 
   ERA5 is ~6 days behind by design, and its preliminary-to-final corrections (if any) would arrive 60–90 days old through the deep re-check. Both checks would warn every day or month.
 
-  Step 2 therefore makes both thresholds **per stream**: freshness from each source's expected delay, and `revision_lag` from each stream's deep window where it has one. It also makes the raw and quality wiring generic per source.
+  Step 2 therefore made both thresholds **per stream** (built):
+  - `StreamSpec.freshness_limit` (default 72 h, Elia's). Open-Meteo: **8 days**. ERA5 is ~6 days behind and fetched daily, so the latest value is ~6.5 days old just before a run; the rest is a day of slack for a late ERA5 update.
+  - `StreamSpec.revision_lag_limit` (default 80% of `revision_window`, i.e. Elia's ~11 days). Open-Meteo: **96 days**, 80% of the 120-day deep window. For Elia the daily window is meant to catch revisions, and the deep re-fetch is a safety net. For ERA5 the expected revisions (ERA5T → final at 2–3 months) are only caught by the deep re-check, so revisions within it are normal.
+  - Both can be overridden in `sources.toml`. `Pipeline.transform` passes the effective limits.
+  - Quality SQL is per source (`sql/quality/<source>/<check>.sql`), and `CHECKS` lists each check's source and inputs. Open-Meteo gets `duplicate_keys`, `grid_gaps` (hours), `freshness` (stalest location) and `revision_lag` (any of the 9 variables changed).
 - **The combined energy and weather table will have empty weather columns for the last ~6 days.** That is expected, not a gap to fix.
 - Credits are needed in the README (Open-Meteo, Copernicus ERA5) wherever the data is shown.
 
 ## Steps
 
 1. Connector, recorded fixture, tests, this ADR; stream registered but paused (built).
-2. Staging, a weather mart with the alignment above, per-stream freshness and `revision_lag` thresholds, and the offshore-wind alignment test.
+2. `stg_openmeteo_hourly`, `mart_weather_hourly` (long format: one row per location and hour) with the alignment above, per-stream freshness and `revision_lag` thresholds, and the alignment tests (built).
 3. Download the history (resume the stream), the combined energy and weather hourly table, and the console showing the new source.

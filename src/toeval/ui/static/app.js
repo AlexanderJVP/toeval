@@ -154,7 +154,7 @@ function streamLevel(s) {
   if (s.paused) return "paused";
   if (s.consecutive_failures) return "error";
   if (s.last_run && s.last_run.status === "running" && snapshot.lock && snapshot.lock.alive) return "running";
-  if (s.overdue || (s.data_age_hours ?? 0) > snapshot.freshness_warn_hours) return "warn";
+  if (s.overdue || (s.data_age_hours ?? 0) > s.freshness_limit_hours) return "warn";
   return "ok";
 }
 
@@ -167,7 +167,7 @@ function renderStreams() {
   const busy = busyReason();
   setHTML($("streams"), streams.map((s) => {
     const level = streamLevel(s);
-    const limit = snapshot.freshness_warn_hours;
+    const limit = s.freshness_limit_hours;
     const fill = s.data_age_hours == null ? 0 : Math.max(4, 100 * (1 - s.data_age_hours / limit));
     const run = s.last_run;
     const runText = run

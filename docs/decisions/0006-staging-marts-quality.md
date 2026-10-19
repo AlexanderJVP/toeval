@@ -31,7 +31,7 @@ One row per natural key: the **latest `_ingested_at`**, ties broken by file name
 
 ### Quality checks (`sql/quality/`): warn, store, never block
 
-Hard checks already ran at ingestion (ADR 0004), and what remains is what the source published. So these checks produce **warnings**: they're logged, shown by `toeval status`, and stored in `quality_results` in the state DB. They never fail the transform. Each SQL file returns `subject, value, details`; the threshold lives in Python (`Check.max_ok`).
+Hard checks already ran at ingestion (ADR 0004), and what remains is what the source published. So these checks produce **warnings**: they're logged, shown by `toeval status`, and stored in `quality_results` in the state DB. They never fail the transform. Each SQL file returns `subject, value, details`; the threshold lives in Python: fixed per check (`Check.max_ok`), or per stream for `freshness` and `revision_lag` (`StreamSpec.freshness_limit` / `revision_lag_limit`, overridable in `sources.toml`; added by ADR 0008 because sources publish with very different delays). The SQL is per source: `sql/quality/<source>/<check>.sql`.
 
 | Check | Value | Warns when |
 |---|---|---|

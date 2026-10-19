@@ -169,11 +169,18 @@ class StreamSpec(_Frozen):
     # Paused streams are skipped by scheduled runs (`run-due`); explicit `ingest`/`backfill` still
     # run them. Set in sources.toml, e.g. by `toeval pause` or the admin console.
     paused: bool = False
+    # Quality-check limits (warnings only, ADR 0006). freshness: how old the latest measured
+    # value may get, i.e. the source's publication delay plus the schedule. revision_lag: how old
+    # a revised value may be when it changes; None means 80% of the window that re-checks it.
+    freshness_limit: Duration = Field(default=timedelta(hours=72), gt=timedelta(0))
+    revision_lag_limit: Duration | None = None
 
     @model_validator(mode="after")
     def _consistent(self) -> "StreamSpec":
         if not self.natural_key:
             raise ValueError(f"stream {self.name!r}: natural_key must not be empty")
+        if self.revision_lag_limit is not None and self.revision_window is None:
+            raise ValueError(f"stream {self.name!r}: revision_lag_limit requires a revision_window")
         if self.backfill_start is not None and self.backfill_start.tzinfo is None:
             raise ValueError(f"stream {self.name!r}: backfill_start must be timezone-aware")
         if self.watermark is WatermarkKind.NONE and (
@@ -185,6 +192,12 @@ class StreamSpec(_Frozen):
         if self.deep_refetch is not None and self.revision_window is None:
             raise ValueError(f"stream {self.name!r}: deep_refetch requires a revision_window")
         return self
+
+    def revision_lag_max(self) -> timedelta | None:
+        """The revision_lag warning threshold; None for streams without a revision window."""
+        if self.revision_lag_limit is not None:
+            return self.revision_lag_limit
+        return None if self.revision_window is None else 0.8 * self.revision_window
 
 
 class SourceSpec(_Frozen):

@@ -15,7 +15,13 @@ from toeval.connectors.base import Connector, RunMode, StreamRunResult
 from toeval.connectors.spec import SourceSpec, StreamSpec, load_overrides
 from toeval.events import NULL_SINK, EventSink
 from toeval.state import StateStore, StreamState
-from toeval.warehouse.transform import TransformResult, outputs_missing, transform
+from toeval.warehouse.transform import (
+    TransformResult,
+    default_limits,
+    outputs_missing,
+    quality_limits,
+    transform,
+)
 
 log = logging.getLogger(__name__)
 
@@ -188,15 +194,15 @@ class Pipeline:
         return True
 
     def transform(self) -> TransformResult:
-        windows = [
-            s.revision_window
-            for source in self.sources
-            for s in self.spec(source).streams
-            if s.revision_window is not None
-        ]
-        kwargs = {"revision_window": min(windows)} if windows else {}
+        # The quality thresholds follow the effective specs, so sources.toml overrides count.
+        limits = default_limits()
+        own = quality_limits(
+            {f"{source}/{s.name}": s for source in self.sources for s in self.spec(source).streams}
+        )
+        for check, per_subject in own.items():
+            limits[check] = limits.get(check, {}) | per_subject
         return transform(
-            self._settings, self._store, now=self._clock(), events=self._events, **kwargs
+            self._settings, self._store, now=self._clock(), events=self._events, limits=limits
         )
 
     def status(self) -> list[StreamStatus]:

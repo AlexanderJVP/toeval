@@ -12,10 +12,16 @@ import pyarrow.parquet as pq
 import pytest
 
 from toeval.config import Settings
-from toeval.connectors.elia import WIND_PARTS
+from toeval.connectors.elia import WIND_PARTS, EliaConnector
 from toeval.state import StateStore
 from toeval.warehouse.raw import RawWriter, content_hash
-from toeval.warehouse.transform import TransformResult, outputs_missing, transform
+from toeval.warehouse.transform import (
+    TransformResult,
+    default_limits,
+    outputs_missing,
+    quality_limits,
+    transform,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "elia"
 SCHEMAS = {s: pq.read_schema(FIXTURES / f"{d}.parquet") for s, d in
@@ -135,6 +141,18 @@ def query(con: duckdb.DuckDBPyConnection, settings: Settings, model: str, sql: s
     layer = settings.staging_path if model.startswith("stg_") else settings.marts_path
     path = (layer / f"{model}.parquet").as_posix()
     return con.execute(sql.replace("{model}", f"read_parquet('{path}')")).fetchall()
+
+
+def elia_limits(revision_window: timedelta) -> dict[str, dict[str, float]]:
+    """The quality limits with Elia's revision window changed (as sources.toml would)."""
+    specs = {
+        f"elia/{s.name}": s.model_copy(update={"revision_window": revision_window})
+        for s in EliaConnector.spec.streams
+    }
+    limits = default_limits()
+    for check, per_subject in quality_limits(specs).items():
+        limits[check] |= per_subject
+    return limits
 
 
 def quality(result: TransformResult, check: str, subject: str):  # type: ignore[no-untyped-def]
@@ -359,7 +377,7 @@ def test_revision_lag_measures_how_old_values_were_when_they_changed(
     late = day1 + timedelta(days=4)  # Elia corrects the whole day four days later
     raw.write("load", load_rows(DAY0, day1, constant(101.0)), at=late, key="later")
 
-    result = run(settings, store, late, revision_window=timedelta(days=4))
+    result = run(settings, store, late, limits=elia_limits(timedelta(days=4)))
 
     q = quality(result, "revision_lag", "elia/load")
     assert q.value == pytest.approx(5.0)  # the first quarter-hour was 5 days old
@@ -426,7 +444,7 @@ def test_an_old_revision_stops_warning_after_30_days(
     raw.write("load", load_rows(DAY0, day1, constant(101.0)), at=day1 + timedelta(days=20), key="x")
 
     later = day1 + timedelta(days=60)
-    q = quality(run(settings, store, later, revision_window=timedelta(days=14)), "revision_lag",
+    q = quality(run(settings, store, later, limits=elia_limits(timedelta(days=14))), "revision_lag",
                 "elia/load")  # fmt: skip
 
     assert q.ok
