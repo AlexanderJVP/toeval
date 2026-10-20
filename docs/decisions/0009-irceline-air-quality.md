@@ -1,6 +1,6 @@
 # 0009. IRCEL-CELINE air quality: NO2, PM10, PM2.5 and O3 at 15 stations
 
-- Status: accepted (step 1 of 3 built: connector and raw data; the stream starts paused)
+- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; the stream is still paused)
 - Date: 2026-10-20
 
 ## Context
@@ -63,6 +63,25 @@ Chosen for long history, all four pollutants where measured, and closeness to th
 
 The value at `time` covers `[time − 1 h, time)`, so `hour_start_utc = time − 1 h`. This is the same shift as Open-Meteo's precipitation and radiation. The other alignment rules (snapshots, wind direction) don't apply.
 
+### Staging, mart and quality checks (step 2)
+
+- `stg_irceline_hourly`: the latest ingested version per `(station, pollutant, time)`. The API timestamp is renamed `hour_end_utc`, so nobody mistakes it for an hour start; the value is `value_ugm3`, as published.
+- `mart_air_hourly`: one row per station and UTC hour, `hour_start_utc = hour_end_utc − 1 h`, with the four pollutants as columns (`no2_ugm3`, `pm10_ugm3`, `pm25_ugm3`, `o3_ugm3`). The grid is gap-free per station from its first to its last hour, so a missing hour is a NULL row. A pollutant the station doesn't measure is NULL throughout. Label and coordinates are the latest published. No imputation, and out-of-range values stay.
+- Wide rather than long, like `mart_weather_hourly`: one row per place and hour is what the joins and the correlation scan read.
+
+The thresholds were calibrated on 90 live days (2026-07-22 to 2026-10-20, 114,393 values, run through the real transform):
+
+| Check | Value | Limit | Why |
+|---|---|---|---|
+| `duplicate_keys` | duplicate staging rows | 0 | as for the other sources |
+| `freshness` | hours since the newest value of the **freshest** series | 36 h | "is the source delivering?" One quiet instrument must not look like a dead source. Live: 2.5 h. |
+| `stale_series` | series whose last value is over 48 h older than the newest value of any series, among those that went quiet in the last 30 days | 0 | a stopped instrument. Measured against the newest value, not now, so a dead source raises only `freshness`. A day of maintenance is normal: 42R801's NO2 and O3 were 25 h quiet on 2026-10-20. Series quiet for over 30 days (retired) are listed in the details only. |
+| `coverage` | series with values for fewer than 75% of the hours in the 30 days before the newest value | 0 | intermittent instruments. Live: median ~100%, ~97% over 90 days; 44M705 O3 was the only one below, at 74%. |
+| `value_range` | values below −5 or above 1000 µg/m³ in those 30 days | 0 | broken sensors or sentinels only. Live: PM2.5 down to −0.33 (noise near zero; 11 negatives in 90 days) and PM10 up to 473 (44R740, Ghent port area) are real. Soft: the values stay in staging and the marts. |
+| `revision_lag` | age in days of the oldest hour revised in the last 30 days | 320 d | the evidence for the 400-day re-check |
+
+The live data also shows PM2.5 values quantised in steps of about 0.43 µg/m³ at several stations, and many exact zeros (1,485 in 90 days). Both are as published; nothing in the warehouse depends on them.
+
 ### Rollout
 
 1. Write `[irceline.streams.hourly] paused = true` in the owner's `sources.toml`.
@@ -73,11 +92,11 @@ This order is the safe one. A tick between the two steps fails with "unknown sou
 ## Consequences
 
 - Attribution: credit IRCEL-CELINE (CC BY 4.0) in the README and wherever the data is shown.
-- A station that stops measuring makes `freshness` warn if the check uses the stalest station. Step 2 decides whether freshness follows the freshest station (the source is delivering) and adds a separate per-station staleness check.
+- `freshness` follows the freshest series; a single station that stops measuring is `stale_series`' job (step 2).
 - `STATIONS.near` maps each station to an Open-Meteo point, for joins in step 3.
 
 ## Steps
 
 1. Connector, recorded fixtures, tests, this ADR; stream registered but paused (built).
-2. Staging, `mart_air_hourly` with the −1 h shift, per-station quality checks, and a soft value-range check.
+2. Staging, `mart_air_hourly` with the −1 h shift, per-series quality checks, and a soft value-range check (built).
 3. Download the history (resume the stream), join air quality into the combined hourly table, and the console.

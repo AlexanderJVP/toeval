@@ -9,7 +9,7 @@ Two projects will sit on top of it:
 1. **A spurious correlation tracker** that hunts for absurd correlations across datasets, then tracks week by week how they fall apart on new data. Playful tone, rigorous statistics.
 2. **JEPA on unlabeled time series:** self-supervised pretraining on the warehouse, benchmarked honestly against simple baselines trained on the same few labels.
 
-**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is loaded back to 2015 and ingests daily, joined to the energy data in one hourly table. An IRCEL-CELINE air quality connector (NO2, PM10, PM2.5, O3 at 15 stations) is built; its staging and history download follow.
+**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is loaded back to 2015 and ingests daily, joined to the energy data in one hourly table. IRCEL-CELINE air quality (NO2, PM10, PM2.5, O3 at 15 stations) has its connector, staging and hourly mart built; the history download follows.
 
 ## What's in the warehouse
 
@@ -27,12 +27,13 @@ Two projects will sit on top of it:
 - `mart_energy_hourly`: the same per hour, NULL unless all four quarter-hours are present.
 - `mart_weather_hourly`: weather per location and hour, aligned to the same hour intervals (see below).
 - `mart_energy_weather_hourly`: one row per hour with the energy columns, the mean weather over the 6 land points, and offshore wind.
+- `mart_air_hourly`: air quality per station and hour, the four pollutants as columns, on the same hour intervals.
 
 For 2025 the mart gives a Belgian load of 80.2 TWh, solar 10.2 TWh and wind 12.0 TWh.
 
 [Open-Meteo](https://open-meteo.com) serves hourly ERA5 reanalysis weather. `openmeteo/hourly` covers 7 points: Antwerp, Brussels, Ghent, Liège, Ostend, Libramont (Ardennes) and the Belgian offshore wind zone. It has 9 variables (temperature, humidity, precipitation, cloud cover, pressure, wind at 10 m and 100 m, wind direction, solar radiation). ERA5 runs ~5–6 days behind real time ([ADR 0008](docs/decisions/0008-open-meteo-weather.md)). ERA5 values don't all mean the same thing at their timestamp: rain and solar radiation cover the hour before it, the rest are snapshots. `mart_weather_hourly` turns both into hour intervals like Elia's (preceding-hour values move back an hour, snapshots are averaged over the hour's two ends, wind direction comes from the mean wind vector). Against Elia's offshore wind output over 2015–2026, the same hour correlates best in every year, and at 15-minute resolution the match is centred on zero.
 
-[IRCEL-CELINE](https://www.irceline.be) publishes hourly air quality from the regional measuring networks. `irceline/hourly` covers NO2, PM10, PM2.5 and O3 at 15 stations chosen for long history (most since 2011–2012) and closeness to the weather points, five of them in Antwerp: 54 series in all. Values arrive within a few hours; their timestamp is the *end* of the hour, so the marts will shift them back an hour ([ADR 0009](docs/decisions/0009-irceline-air-quality.md)). The connector is built; the stream stays paused until staging exists.
+[IRCEL-CELINE](https://www.irceline.be) publishes hourly air quality from the regional measuring networks. `irceline/hourly` covers NO2, PM10, PM2.5 and O3 at 15 stations chosen for long history (most since 2011–2012) and closeness to the weather points, five of them in Antwerp: 54 series in all. Values arrive within a few hours; their timestamp is the *end* of the hour, so `mart_air_hourly` shifts them back an hour ([ADR 0009](docs/decisions/0009-irceline-air-quality.md)). Its quality checks were calibrated on 90 live days: freshness follows the freshest series, and separate checks flag a station that goes quiet, patchy coverage, and impossible values (small negatives and PM10 peaks near 500 µg/m³ are real). The stream stays paused until the history download.
 
 ## Architecture
 

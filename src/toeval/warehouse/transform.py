@@ -56,6 +56,7 @@ RAW_INPUTS = (
     RawInput("elia", "wind"),
     RawInput("elia", "solar"),
     RawInput("openmeteo", "hourly"),
+    RawInput("irceline", "hourly"),
 )
 
 MODELS = (
@@ -67,6 +68,12 @@ MODELS = (
         "staging",
         "staging/openmeteo_hourly.sql",
         ("raw_openmeteo_hourly",),
+    ),
+    Model(
+        "stg_irceline_hourly",
+        "staging",
+        "staging/irceline_hourly.sql",
+        ("raw_irceline_hourly",),
     ),
     Model(
         "mart_energy_15min",
@@ -82,6 +89,7 @@ MODELS = (
         "marts/energy_weather_hourly.sql",
         ("mart_energy_hourly", "mart_weather_hourly"),
     ),
+    Model("mart_air_hourly", "marts", "marts/air_hourly.sql", ("stg_irceline_hourly",)),
 )
 
 # Check name -> subject ("<source>/<stream>") -> the highest value that is still ok.
@@ -122,6 +130,12 @@ CHECKS = (
     Check("openmeteo", "grid_gaps", "hours", ("stg_openmeteo_hourly",)),
     Check("openmeteo", "freshness", "hours", ("stg_openmeteo_hourly",), PER_STREAM),
     Check("openmeteo", "revision_lag", "days", ("raw_openmeteo_hourly",), PER_STREAM),
+    Check("irceline", "duplicate_keys", "rows", ("stg_irceline_hourly",)),
+    Check("irceline", "freshness", "hours", ("stg_irceline_hourly",), PER_STREAM),
+    Check("irceline", "stale_series", "series", ("stg_irceline_hourly",)),
+    Check("irceline", "coverage", "series", ("stg_irceline_hourly",)),
+    Check("irceline", "value_range", "values", ("stg_irceline_hourly",)),
+    Check("irceline", "revision_lag", "days", ("raw_irceline_hourly",), PER_STREAM),
 )
 
 
