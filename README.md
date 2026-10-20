@@ -216,6 +216,7 @@ tests/
   fixtures/openmeteo/       a recorded Open-Meteo archive response
   fixtures/irceline/        recorded IRCEL-CELINE listings and data
 docs/decisions/             architecture decision records
+docs/next-steps.md          the working backlog: where things stand and what comes next
 scripts/scheduled-task.ps1  Task Scheduler setup
 ```
 

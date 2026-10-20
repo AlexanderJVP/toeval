@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, done 2026-10-20: connector, staging, `mart_weather_hourly`, `mart_energy_weather_hourly`, per-stream quality limits; history since 2014-12-31 loaded, ingests daily at 12:00), then IRCEL-CELINE (ADR 0009, steps 1–2 of 3 built: connector, `stg_irceline_hourly`, `mart_air_hourly`, quality checks; stream **paused** in the local `sources.toml` until step 3 downloads the history), a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
+**Start here when resuming:** read `docs/next-steps.md`, which has where the last session stopped, the detailed next step (IRCEL step 3: decide the station → weather point mapping, download the history, resume, join, console) and open threads. Update it at the end of each session. Before building anything, confirm the plan for the step with the owner.
+
 ## Commands
 
 uv lives in `~/.local/bin`. If `uv` isn't found, prepend it to PATH.
@@ -131,6 +133,18 @@ Implemented in `src/toeval/connectors/irceline.py`: source `irceline`, stream `h
 - Tests never hit the network unless they're marked `@pytest.mark.live`; use recorded fixtures with `httpx.MockTransport`.
 - One file per significant decision in `docs/decisions/NNNN-title.md`, including the why.
 - Verify data source endpoints, terms and rate limits yourself rather than trusting the brief.
+- Calibrate quality thresholds on real data before fixing them: fetch a sample with the connector's `fetch` into a throwaway `Settings(data_dir=<tmp>)`, write it with `RawWriter`, and run the real `transform` (done for IRCEL, ADR 0009). Never touch `data/` for experiments.
+- Mutation-check new tests: break the SQL rule under test (e.g. the hour shift) and confirm a test fails.
+- Docs: CLAUDE.md, the README (status, marts list, ADR table, file tree, roadmap, attribution) and the source's ADR are updated in the same commit as the code.
+
+## Working notes (Windows dev machine)
+
+- In Git Bash, uv needs `export PATH="$HOME/.local/bin:$PATH"`. The repo is at `/m/Documenten/Other/coding/unlabled data` (the path contains a space, so quote it).
+- Multi-line edits: write a small Python script to the session scratchpad (a **new** file name each time) and run it with `uv run python <script>`, asserting each old string occurs exactly once. Long heredocs into Python are unreliable; `cat > file` with no input hangs.
+- DuckDB quirks: `INTERVAL (-1) HOUR` needs the parentheses; timestamp literals as `TIMESTAMPTZ '2026-09-30 22:00:00+00'` (not `Z`); cast timestamps `::VARCHAR` before `fetchall()` (no `pytz`).
+- pre-commit's end-of-file-fixer can rewrite new fixture files and fail the commit: `git add -A` and commit again (a new commit, not an amend).
+- CI (GitHub Actions, windows-latest): `gh run list --limit 2` first. Right after a push, `gh run watch` on the latest run may still show the previous commit's run; watch the new run's id.
+- Never commit `.env` or `sources.toml` (both gitignored). `sources.toml` is the owner's live operating state: the scheduled task reads it every 5 min.
 
 ## How the owner wants to work
 
