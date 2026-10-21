@@ -1,6 +1,6 @@
 # 0009. IRCEL-CELINE air quality: NO2, PM10, PM2.5 and O3 at 15 stations
 
-- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; the stream is still paused)
+- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; step 3 in progress: history downloaded and the stream resumed on 2026-10-21, the join and console follow)
 - Date: 2026-10-20
 
 ## Context
@@ -89,6 +89,28 @@ The live data also shows PM2.5 values quantised in steps of about 0.43 µg/m³ a
 
 This order is the safe one. A tick between the two steps fails with "unknown source" and writes nothing. The opposite order could start the 15-minute history download before staging exists. The history download happens in step 3, as an explicit `ingest` while the stream is still paused, as with Open-Meteo.
 
+### History download (2026-10-21)
+
+The owner ran the download from the console ("fetch now", an explicit `ingest` of the paused stream) and then resumed the stream. One run: 804 GETs plus 4 listings, 6,267,787 values, 16 raw files, ~10 minutes. `mart_air_hourly` has 2,000,763 station-hours (15 stations, 2011-01-01 to now). The transform now takes ~37 s (it was ~18–21 s on Elia and weather). Every station still has one series id per pollutant.
+
+| Pollutant | Values | First hour (end) |
+|---|---|---|
+| NO2 | 1,726,643 | 2011-01-01 01:00 UTC |
+| O3 | 1,256,478 | 2011-01-01 01:00 UTC |
+| PM10 | 1,693,687 | 2012-05-31 01:00 UTC |
+| PM2.5 | 1,590,979 | 2012-05-31 01:00 UTC |
+
+Start dates as expected: 42R804 from 2017-10-31, 44R740 PM2.5 from 2023-12-15. Some PM series start later than 2012-05-31 (40AL01 PM2.5 2015-01-29, 42M802 and 44M705 PM2.5 2014-11-03).
+
+Findings, all confirmed against the live API (not artefacts of our 365-day chunks):
+
+- **A national hole from 2012-01-01 to 2012-05-31.** Every NO2 and O3 series has no values in that period (the API returns an empty list for, e.g., 42R801 NO2 in February 2012, and values up to 2011-12-31 23:00). PM10 and PM2.5 start when it ends, so 2011 holds NO2 and O3 only.
+- **Instrument gaps over 30 days:** 40AL01 PM10 2013-06 to 2016-01 and 40AL01 PM10 and PM2.5 2024-01 to 2025-11; 44R740 PM10 2022-02 to 2023-12; 44M705 PM10 and PM2.5 2022-02 to 2023-11; 42M802 PM10 2015-01 to 2016-01; 44M705 all pollutants 2012-07 to 2012-08; 41R001 PM10 and PM2.5 for 1–2 months in 2014–2015. They are NULL rows in the mart.
+- **A sentinel value: PM2.5 = −9399.06 µg/m³**, 1,893 hours at 14 stations between 2021-01-04 and 2022-01-06 (876 of them at 41R012). The API publishes it as a value. It is probably a −9999 "no data" code multiplied by a PM2.5 correction factor of 0.94. It is in staging and `mart_air_hourly` today, and any mean or correlation over 2021 would be wrecked by it. `value_range` counts it only under "all history", because it checks the last 30 days. **How to handle it is open** (see `docs/next-steps.md`).
+- **Two PM10 spikes** at 40AL01 on 2013-03-19 (2,432 and 2,946.5 µg/m³, 10:00 and 11:00): physically implausible as hourly means, but single hours. They stay, like other out-of-range values.
+- **Negatives down to −10 µg/m³** (184 values, mostly PM2.5 at 41R001 and 41R012 in 2015–2019). IRCEL's own colour scale for PM2.5 starts at −10, so these are measurement noise near zero, as published.
+- On 2026-10-21 two O3 analysers were offline at the source (42R801 since 2026-10-19 05:00, 44M705 since 12:00; the stations' other pollutants are current), and `stale_series` and `coverage` warned as designed.
+
 ## Consequences
 
 - Attribution: credit IRCEL-CELINE (CC BY 4.0) in the README and wherever the data is shown.
@@ -99,4 +121,4 @@ This order is the safe one. A tick between the two steps fails with "unknown sou
 
 1. Connector, recorded fixtures, tests, this ADR; stream registered but paused (built).
 2. Staging, `mart_air_hourly` with the −1 h shift, per-series quality checks, and a soft value-range check (built).
-3. Download the history (resume the stream), join air quality into the combined hourly table, and the console.
+3. Download the history (resume the stream) (done 2026-10-21), join air quality into the combined hourly table, and the console.
