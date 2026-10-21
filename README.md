@@ -9,7 +9,7 @@ Two projects will sit on top of it:
 1. **A spurious correlation tracker** that hunts for absurd correlations across datasets, then tracks week by week how they fall apart on new data. Playful tone, rigorous statistics.
 2. **JEPA on unlabeled time series:** self-supervised pretraining on the warehouse, benchmarked honestly against simple baselines trained on the same few labels.
 
-**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is loaded back to 2015 and ingests daily, joined to the energy data in one hourly table. IRCEL-CELINE air quality (NO2, PM10, PM2.5, O3 at 15 stations) is loaded back to 2011 and ingests daily; joining it to the energy and weather table follows.
+**Status:** Phase 1 (foundation + Elia grid data) is complete. The pipeline ingests Belgian electricity load, wind and solar generation every day, back to 2015. Phase 2 has started: an Open-Meteo weather connector (ERA5, 7 points around Belgium) is loaded back to 2015 and ingests daily, joined to the energy data in one hourly table. IRCEL-CELINE air quality (NO2, PM10, PM2.5, O3 at 15 stations) is loaded back to 2011 and ingests daily; one Antwerp station's air quality is joined into the energy and weather table.
 
 ## What's in the warehouse
 
@@ -26,7 +26,7 @@ Two projects will sit on top of it:
 - `mart_energy_15min`: national load, solar and wind (measured and day-ahead forecast) per quarter-hour on a gap-free grid.
 - `mart_energy_hourly`: the same per hour, NULL unless all four quarter-hours are present.
 - `mart_weather_hourly`: weather per location and hour, aligned to the same hour intervals (see below).
-- `mart_energy_weather_hourly`: one row per hour with the energy columns, the mean weather over the 6 land points, and offshore wind.
+- `mart_energy_weather_hourly`: one row per hour with the energy columns, the mean weather over the 6 land points, offshore wind, and air quality at one fixed Antwerp reference station (42R801 Borgerhout).
 - `mart_air_hourly`: air quality per station and hour, the four pollutants as columns, on the same hour intervals.
 
 For 2025 the mart gives a Belgian load of 80.2 TWh, solar 10.2 TWh and wind 12.0 TWh.
@@ -223,7 +223,7 @@ scripts/scheduled-task.ps1  Task Scheduler setup
 ## Roadmap
 
 1. ~~**Foundation + Elia:** connector interface, Elia backfill and incremental loads, raw → staging → marts, quality checks, scheduling, tests.~~
-2. **More sources:** Open-Meteo weather (done), IRCEL-CELINE air quality (loaded; the join follows), a shared calendar for daily and weekly grains, Statbel / Antwerp statistics, iRail trains. Telraam traffic counts are set aside for now.
+2. **More sources:** Open-Meteo weather (done), IRCEL-CELINE air quality (done apart from the console), a shared calendar for daily and weekly grains, Statbel / Antwerp statistics, iRail trains. Telraam traffic counts are set aside for now.
 3. **Correlation tracker:** a weekly scan with multiple-testing correction, detrending and out-of-sample tracking. Planned framing: "a naive scan finds X, rigorous methods keep Y, and here is how both decay".
 4. **JEPA:** self-supervised pretraining (mask time spans, predict their latent representation), few-label downstream tasks, and an honest comparison against simple baselines. With a corpus this small, "the baselines win" is a legitimate result and will be reported as such.
 5. **Presentation:** a public dashboard or report.

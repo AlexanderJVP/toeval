@@ -12,6 +12,7 @@ import pytest
 
 from test_transform import DAY0, load_rows, solar_rows, wind_rows
 from toeval.config import Settings
+from toeval.connectors import irceline
 from toeval.connectors.openmeteo import LOCATIONS, SCHEMA, VARIABLES
 from toeval.pipeline import Pipeline
 from toeval.state import StateStore
@@ -307,6 +308,12 @@ def test_combined_table_has_every_energy_hour_with_land_means_and_offshore_wind(
     raw.weather(weather_rows(DAY0 + 2 * H, DAY0 + 3 * H, lambda _t: {
         "temperature_2m": None, "wind_speed_100m": 5.0, "wind_direction_100m": 270.0,
     }, location="libramont"), at=now + H)  # fmt: skip
+    # The combined table also needs air quality (tests/test_air.py covers those columns).
+    raw.write("irceline", "hourly", pa.Table.from_pylist([{
+        "station": "42R801", "station_label": "42R801 - Borgerhout", "latitude": 51.2,
+        "longitude": 4.4, "pollutant": "no2", "series_id": "1", "time": DAY0 + H,
+        "value": 20.0,
+    }], schema=irceline.SCHEMA), at=now)  # fmt: skip
 
     transform(settings, store, now=now)
 

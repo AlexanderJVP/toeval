@@ -19,7 +19,7 @@ Confirm the plan with the owner before building, as with every step.
 
 1. ~~**PM2.5 sentinel −9399.06**~~ (done 2026-10-22): staging drops values below −1000 µg/m³, guarded by the `no_data_codes` check (ADR 0009, "No data codes").
 2. **Station → weather point mapping: deferred** (owner, 2026-10-22). The join below doesn't need it, and building it now would be code without a user. When a per-station weather analysis needs it: `transform.py` registers a small reference view (e.g. `ref_irceline_stations`: station, near) built from `STATIONS` (`connectors/irceline.py`). Not in raw (curation must not go into immutable raw).
-3. **Join air quality into `mart_energy_weather_hourly`** (decided by the owner, 2026-10-22):
+3. ~~**Join air quality into `mart_energy_weather_hourly`**~~ (done 2026-10-22, ADR 0009 "Join"; the decision is kept here for context):
    - **One fixed reference station, 42R801 Borgerhout** (all four pollutants, since 2011), as columns like `air_antwerp_no2`, so Phase 3 reads one wide hourly table. Station detail stays in `mart_air_hourly`.
    - **Not** a mean of the stations present, nor a national median: the station set changes (42R804, a roadside station, starts in 2017; outages), which shifts the level for reasons unrelated to the air and creates exactly the spurious correlations Phase 3 is meant to expose. A count column would explain the jumps, not remove them.
    - Hours without a value stay NULL: the 2012-01 to 2012-05 hole, PM before 2012-05-31, the O3 outage since 2026-10-19. 42R801 has the lowest NO2 coverage of the 15 stations (87.6% of its span; O3 89.3%), so expect somewhat more NULLs.

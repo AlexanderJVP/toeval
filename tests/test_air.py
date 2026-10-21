@@ -8,9 +8,10 @@ import duckdb
 import pyarrow as pa
 import pytest
 
-from test_weather import Raw, hours, rows
+from test_transform import load_rows, solar_rows, wind_rows
+from test_weather import Raw, hours, rows, weather_rows
 from toeval.config import Settings
-from toeval.connectors.irceline import SCHEMA
+from toeval.connectors.irceline import SCHEMA, STATIONS
 from toeval.state import QualityResult, StateStore
 from toeval.warehouse.transform import TransformResult, transform
 
@@ -226,3 +227,37 @@ def test_no_data_codes_become_null_hours_over_the_whole_history(
     assert q.ok
     assert q.details == "staging: 0, mart: 0; dropped from raw: 3"
     assert quality(result, "value_range").details.endswith("all history: 0")
+
+
+# -- energy + weather + air ----------------------------------------------------------------------
+
+
+def test_combined_table_takes_air_from_the_one_reference_station(
+    settings: Settings, store: StateStore, raw: Raw, con: duckdb.DuckDBPyConnection
+) -> None:
+    # energy_weather_hourly.sql hard-codes 42R801 Borgerhout: it must stay a curated station.
+    assert "42R801" in {s.code for s in STATIONS}
+    end = T0 + 4 * H
+    for name, make in {"load": load_rows, "wind": wind_rows, "solar": solar_rows}.items():
+        raw.write("elia", name, make(T0, end, lambda _t: 100.0), at=end)
+    raw.weather(weather_rows(T0, end, lambda _t: {}), at=end)
+    air(raw, pa.concat_tables([
+        air_rows(T0, end, lambda t: None if t == T0 + 2 * H else float(t.hour)),  # 23-00 missing
+        air_rows(T0, T0 + 2 * H, 30.0, pollutant="o3"),  # O3 goes quiet after 2 hours
+        # Another Antwerp station, much higher: it must never leak in or shift the level.
+        air_rows(T0, end, 500.0, station="42R804"),
+        air_rows(T0, end, 500.0, station="42R804", pollutant="o3"),
+    ]), at=end)  # fmt: skip
+
+    transform(settings, store, now=end)
+
+    assert rows(con, settings, "mart_energy_weather_hourly",
+                "SELECT hour_start_utc::VARCHAR, load_mw, air_antwerp_no2_ugm3, "
+                "air_antwerp_pm10_ugm3, air_antwerp_pm25_ugm3, air_antwerp_o3_ugm3 "
+                "FROM {model} ORDER BY 1") == [
+        # IRCEL's value stamped 23:00 UTC covers 22:00-23:00, the first energy hour.
+        ("2026-09-30 22:00:00+00", 100.0, 23.0, None, None, 30.0),
+        ("2026-09-30 23:00:00+00", 100.0, None, None, None, 30.0),  # NO2 missing: NULL
+        ("2026-10-01 00:00:00+00", 100.0, 1.0, None, None, None),  # O3 quiet: NULL, not 500
+        ("2026-10-01 01:00:00+00", 100.0, 2.0, None, None, None),
+    ]  # fmt: skip

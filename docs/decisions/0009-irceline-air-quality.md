@@ -1,6 +1,6 @@
 # 0009. IRCEL-CELINE air quality: NO2, PM10, PM2.5 and O3 at 15 stations
 
-- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; step 3 in progress: history downloaded and the stream resumed on 2026-10-21, the join and console follow)
+- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; step 3 in progress: history downloaded and the stream resumed on 2026-10-21, no-data codes and the join built on 2026-10-22, the console follows)
 - Date: 2026-10-20
 
 ## Context
@@ -121,11 +121,23 @@ The owner chose a range rule over matching −9399.06 exactly: **any value below
 - `value_range` keeps its −5 lower bound for warnings; small negatives down to −10 stay.
 - A new check, `no_data_codes`, counts values below −1000 left in staging or `mart_air_hourly` over the **whole history** (limit 0), and reports how many raw values the rule drops. On the real data: 6,267,787 → 6,265,894 staging rows (1,893 dropped), the mart's lowest PM2.5 is now −10, and `value_range`'s history count went from 2,079 to 186.
 
+### Join into the combined hourly table (2026-10-22)
+
+`mart_energy_weather_hourly` gains `air_antwerp_no2_ugm3`, `air_antwerp_pm10_ugm3`, `air_antwerp_pm25_ugm3` and `air_antwerp_o3_ugm3`, taken from **one fixed reference station, 42R801 Borgerhout** (Antwerp, all four pollutants since 2011). An hour without its value stays NULL. Station detail stays in `mart_air_hourly`.
+
+The owner rejected the earlier proposal, a mean of the Antwerp stations present plus a station count, and a national median for the same reason. The station set changes: 42R804 is a roadside station on the Ring that starts in 2017, and stations have outages. A mean over whichever stations report shifts the level when one joins or drops out, for reasons that have nothing to do with the air. Phase 3 is a correlation tracker, and such steps produce exactly the spurious correlations it is meant to expose; a count column would explain the steps, not remove them. The weather rule (a mean over a fixed set, NULL unless all have a value) would work, but 42R804 would limit it to 2017 onwards.
+
+The price is a single station's outages: 42R801 has the lowest NO2 coverage of the 15 stations (87.6% of its span; O3 89.3%), and its O3 has been offline since 2026-10-19. Over the combined table's hours (2015 onwards) it fills NO2 90%, PM10 98%, PM2.5 99% and O3 92%. If that proves too thin: a fixed set of stations, NULL unless all have a value, from 2017.
+
+The combined table now needs `mart_air_hourly` to be built (every model input is required). The SQL hard-codes `42R801`; `tests/test_air.py` asserts it stays in `STATIONS`.
+
+The station → weather point mapping (`STATIONS.near`) is not used by the join and stays in Python until an analysis needs it; it then becomes a reference view built in the transform, never a raw column.
+
 ## Consequences
 
 - Attribution: credit IRCEL-CELINE (CC BY 4.0) in the README and wherever the data is shown.
 - `freshness` follows the freshest series; a single station that stops measuring is `stale_series`' job (step 2).
-- `STATIONS.near` maps each station to an Open-Meteo point, for joins in step 3.
+- `STATIONS.near` maps each station to an Open-Meteo point. The step 3 join doesn't use it (see "Join").
 
 ## Steps
 
