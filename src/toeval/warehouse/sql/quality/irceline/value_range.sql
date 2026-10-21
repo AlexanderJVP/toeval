@@ -1,8 +1,9 @@
 -- Physically implausible values: below -5 or above 1000 µg/m³. Small negatives are measurement
 -- noise near zero (PM2.5 down to -0.3 in the live data) and peaks of several hundred are real
--- (PM10 473 in the Ghent port area, 2026), so this only catches broken sensors or sentinel
--- values. A soft check: the values stay in staging and the marts as published (no imputation),
--- because one spike must not quarantine a whole window (ADR 0009).
+-- (PM10 473 in the Ghent port area, 2026), so this only catches broken sensors. A soft check:
+-- the values stay in staging and the marts as published (no imputation), because one spike
+-- must not quarantine a whole window (ADR 0009). "No data" codes below -1000 never reach
+-- staging; no_data_codes.sql covers them.
 -- value = such values in the 30 days before the newest value; older ones only in the details.
 WITH bounds AS (
     SELECT max(hour_end_utc) AS newest FROM stg_irceline_hourly

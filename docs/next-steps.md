@@ -17,17 +17,14 @@ The working backlog: where the last session stopped and what comes next, in orde
 
 Confirm the plan with the owner before building, as with every step.
 
-1. **Decide how to handle the PM2.5 sentinel −9399.06** (1,893 hours, 14 stations, 2021-01-04 to 2022-01-06; ADR 0009). It is in staging and `mart_air_hourly` now, and would wreck any 2021 mean or correlation.
-   - Options to put to the owner: NULL it in staging (raw keeps it; a named rule, not imputation), NULL it only in the mart, or a general rule (e.g. any value below −1000 is "no data").
-   - Then a quality check or test that the mart has none, and a mutation check.
-2. **Station → weather point mapping:** `STATIONS.near` is in Python (`connectors/irceline.py`), and SQL can't read it.
-   - Recommended: `transform.py` registers a small reference view (e.g. `ref_irceline_stations`: station, near) built from `STATIONS`. Not in raw (curation must not go into immutable raw).
-3. **Join air quality into the combined hourly table** (`mart_energy_weather_hourly`, or a new mart; ask the owner).
-   - The station set changes over time (42R804 starts in 2017), so the Open-Meteo rule "NULL unless all points" doesn't carry over.
-   - Options to put to the owner: an Antwerp mean of the stations present, plus a count column; per-point columns; or the national median.
-   - Antwerp O3 rests on 42R801 alone (42R802, 42M802, 42R804 and 40AL01 don't measure O3), and that analyser was offline from 2026-10-19.
-   - The 2012-01 to 2012-05 hole (NO2/O3, all stations) and 2011 without PM must show as NULLs, not as a smaller mean.
-   - Test it like `tests/test_weather.py` (synthetic raw through `RawWriter`).
+1. ~~**PM2.5 sentinel −9399.06**~~ (done 2026-10-22): staging drops values below −1000 µg/m³, guarded by the `no_data_codes` check (ADR 0009, "No data codes").
+2. **Station → weather point mapping: deferred** (owner, 2026-10-22). The join below doesn't need it, and building it now would be code without a user. When a per-station weather analysis needs it: `transform.py` registers a small reference view (e.g. `ref_irceline_stations`: station, near) built from `STATIONS` (`connectors/irceline.py`). Not in raw (curation must not go into immutable raw).
+3. **Join air quality into `mart_energy_weather_hourly`** (decided by the owner, 2026-10-22):
+   - **One fixed reference station, 42R801 Borgerhout** (all four pollutants, since 2011), as columns like `air_antwerp_no2`, so Phase 3 reads one wide hourly table. Station detail stays in `mart_air_hourly`.
+   - **Not** a mean of the stations present, nor a national median: the station set changes (42R804, a roadside station, starts in 2017; outages), which shifts the level for reasons unrelated to the air and creates exactly the spurious correlations Phase 3 is meant to expose. A count column would explain the jumps, not remove them.
+   - Hours without a value stay NULL: the 2012-01 to 2012-05 hole, PM before 2012-05-31, the O3 outage since 2026-10-19. 42R801 has the lowest NO2 coverage of the 15 stations (87.6% of its span; O3 89.3%), so expect somewhat more NULLs.
+   - Fallback if one station is too thin: the mean of a fixed set of stations, only when all have a value (the weather rule), only from 2017.
+   - Test it like `tests/test_weather.py` (synthetic raw through `RawWriter`), with a mutation check.
 4. **Console** (`src/toeval/ui/static/`):
    - `app.js:228` marts label ("energy · weather · energy + weather hourly") should mention air.
    - Check the stream card shows `irceline/hourly` with its 36 h freshness limit (should be generic).

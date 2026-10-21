@@ -79,6 +79,7 @@ The thresholds were calibrated on 90 live days (2026-07-22 to 2026-10-20, 114,39
 | `coverage` | series with values for fewer than 75% of the hours in the 30 days before the newest value | 0 | intermittent instruments. Live: median ~100%, ~97% over 90 days; 44M705 O3 was the only one below, at 74%. |
 | `value_range` | values below −5 or above 1000 µg/m³ in those 30 days | 0 | broken sensors or sentinels only. Live: PM2.5 down to −0.33 (noise near zero; 11 negatives in 90 days) and PM10 up to 473 (44R740, Ghent port area) are real. Soft: the values stay in staging and the marts. |
 | `revision_lag` | age in days of the oldest hour revised in the last 30 days | 320 d | the evidence for the 400-day re-check |
+| `no_data_codes` | values below −1000 left in staging or the mart, whole history (added 2026-10-22) | 0 | staging drops them; this guards that rule (see "No data codes") |
 
 The live data also shows PM2.5 values quantised in steps of about 0.43 µg/m³ at several stations, and many exact zeros (1,485 in 90 days). Both are as published; nothing in the warehouse depends on them.
 
@@ -106,10 +107,19 @@ Findings, all confirmed against the live API (not artefacts of our 365-day chunk
 
 - **A national hole from 2012-01-01 to 2012-05-31.** Every NO2 and O3 series has no values in that period (the API returns an empty list for, e.g., 42R801 NO2 in February 2012, and values up to 2011-12-31 23:00). PM10 and PM2.5 start when it ends, so 2011 holds NO2 and O3 only.
 - **Instrument gaps over 30 days:** 40AL01 PM10 2013-06 to 2016-01 and 40AL01 PM10 and PM2.5 2024-01 to 2025-11; 44R740 PM10 2022-02 to 2023-12; 44M705 PM10 and PM2.5 2022-02 to 2023-11; 42M802 PM10 2015-01 to 2016-01; 44M705 all pollutants 2012-07 to 2012-08; 41R001 PM10 and PM2.5 for 1–2 months in 2014–2015. They are NULL rows in the mart.
-- **A sentinel value: PM2.5 = −9399.06 µg/m³**, 1,893 hours at 14 stations between 2021-01-04 and 2022-01-06 (876 of them at 41R012). The API publishes it as a value. It is probably a −9999 "no data" code multiplied by a PM2.5 correction factor of 0.94. It is in staging and `mart_air_hourly` today, and any mean or correlation over 2021 would be wrecked by it. `value_range` counts it only under "all history", because it checks the last 30 days. **How to handle it is open** (see `docs/next-steps.md`).
+- **A sentinel value: PM2.5 = −9399.06 µg/m³**, 1,893 hours at 14 stations between 2021-01-04 and 2022-01-06 (876 of them at 41R012). The API publishes it as a value. It is probably a −9999 "no data" code multiplied by a PM2.5 correction factor of 0.94. Any mean or correlation over 2021 would be wrecked by it, and `value_range` counted it only under "all history", because it checks the last 30 days. Handled on 2026-10-22, see "No data codes" below.
 - **Two PM10 spikes** at 40AL01 on 2013-03-19 (2,432 and 2,946.5 µg/m³, 10:00 and 11:00): physically implausible as hourly means, but single hours. They stay, like other out-of-range values.
 - **Negatives down to −10 µg/m³** (184 values, mostly PM2.5 at 41R001 and 41R012 in 2015–2019). IRCEL's own colour scale for PM2.5 starts at −10, so these are measurement noise near zero, as published.
 - On 2026-10-21 two O3 analysers were offline at the source (42R801 since 2026-10-19 05:00, 44M705 since 12:00; the stations' other pollutants are current), and `stale_series` and `coverage` warned as designed.
+
+### No data codes (2026-10-22)
+
+The owner chose a range rule over matching −9399.06 exactly: **any value below −1000 µg/m³ is "no data"**, for every pollutant. No air pollutant can be that negative, so dropping it isn't imputation, and a rule on the range also catches a future raw −9999 or another corrected code.
+
+- `stg_irceline_hourly` drops such hours after picking the latest version, as `fetch` drops null hours. A later real value replaces a code as usual, and a later code hides an older real value. The mart's grid shows the hour as NULL. Raw keeps the published value.
+- Dropped rather than kept as a NULL row in staging, because `coverage`, `freshness` and `stale_series` count staging rows: a no-data hour must not count as measured.
+- `value_range` keeps its −5 lower bound for warnings; small negatives down to −10 stay.
+- A new check, `no_data_codes`, counts values below −1000 left in staging or `mart_air_hourly` over the **whole history** (limit 0), and reports how many raw values the rule drops. On the real data: 6,267,787 → 6,265,894 staging rows (1,893 dropped), the mart's lowest PM2.5 is now −10, and `value_range`'s history count went from 2,079 to 186.
 
 ## Consequences
 

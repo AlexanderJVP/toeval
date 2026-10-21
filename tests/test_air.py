@@ -200,3 +200,29 @@ def test_implausible_values_warn_but_stay_in_the_mart(
     assert rows(
         con, settings, "mart_air_hourly", "SELECT min(pm25_ugm3), max(pm25_ugm3) FROM {model}"
     ) == [(-9.0, 5000.0)]
+
+
+def test_no_data_codes_become_null_hours_over_the_whole_history(
+    settings: Settings, store: StateStore, raw: Raw, con: duckdb.DuckDBPyConnection
+) -> None:
+    # IRCEL published PM2.5 = -9399.06 during 2021: far older than value_range's 30 days.
+    newest = T0 + 60 * DAY
+    code = {T0 + 5 * H: -9399.06, T0 + 6 * H: -9999.0}
+    air(raw, air_rows(T0, newest, lambda t: code.get(t, 20.0), pollutant="pm25"), at=newest)
+    # A later version turns a real value into a code: the latest version wins, then is dropped.
+    air(raw, air_rows(T0 + 6 * H, T0 + 7 * H, -9399.06, pollutant="pm25"), at=newest + H)
+
+    result = transform(settings, store, now=newest + 2 * H)
+
+    assert rows(
+        con, settings, "stg_irceline_hourly", "SELECT count(*), min(value_ugm3) FROM {model}"
+    ) == [(60 * 24 - 3, 20.0)]
+    assert rows(con, settings, "mart_air_hourly",
+                "SELECT count(*), count(pm25_ugm3), min(pm25_ugm3) FROM {model}") == [
+        (60 * 24, 60 * 24 - 3, 20.0),  # NULL rows on the grid, not gaps
+    ]  # fmt: skip
+    q = quality(result, "no_data_codes")
+    assert q.value == 0
+    assert q.ok
+    assert q.details == "staging: 0, mart: 0; dropped from raw: 3"
+    assert quality(result, "value_range").details.endswith("all history: 0")

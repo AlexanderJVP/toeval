@@ -135,6 +135,12 @@ CHECKS = (
     Check("irceline", "stale_series", "series", ("stg_irceline_hourly",)),
     Check("irceline", "coverage", "series", ("stg_irceline_hourly",)),
     Check("irceline", "value_range", "values", ("stg_irceline_hourly",)),
+    Check(
+        "irceline",
+        "no_data_codes",
+        "values",
+        ("raw_irceline_hourly", "stg_irceline_hourly", "mart_air_hourly"),
+    ),
     Check("irceline", "revision_lag", "days", ("raw_irceline_hourly",), PER_STREAM),
 )
 
