@@ -223,7 +223,7 @@ scripts/scheduled-task.ps1  Task Scheduler setup
 ## Roadmap
 
 1. ~~**Foundation + Elia:** connector interface, Elia backfill and incremental loads, raw → staging → marts, quality checks, scheduling, tests.~~
-2. **More sources:** Open-Meteo weather (done), IRCEL-CELINE air quality (done apart from the console), a shared calendar for daily and weekly grains, Statbel / Antwerp statistics, iRail trains. Telraam traffic counts are set aside for now.
+2. **More sources:** Open-Meteo weather (done), IRCEL-CELINE air quality (done), a shared calendar for daily and weekly grains, Statbel / Antwerp statistics, iRail trains. Telraam traffic counts are set aside for now.
 3. **Correlation tracker:** a weekly scan with multiple-testing correction, detrending and out-of-sample tracking. Planned framing: "a naive scan finds X, rigorous methods keep Y, and here is how both decay".
 4. **JEPA:** self-supervised pretraining (mask time spans, predict their latent representation), few-label downstream tasks, and an honest comparison against simple baselines. With a corpus this small, "the baselines win" is a legitimate result and will be reported as such.
 5. **Presentation:** a public dashboard or report.

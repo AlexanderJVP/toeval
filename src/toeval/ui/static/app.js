@@ -225,7 +225,7 @@ function renderLayers() {
     <div class="layer"><div class="name">Staging</div><div class="value">${bytes(st.staging_bytes)}</div>
       <div class="detail">latest version per key</div></div>
     <div class="layer"><div class="name">Marts</div><div class="value">${bytes(st.marts_bytes)}</div>
-      <div class="detail">energy · weather · energy + weather hourly</div></div>
+      <div class="detail">energy · weather · air · energy + weather + air hourly</div></div>
     <div class="layer" data-level="${st.quarantine_files ? "error" : "ok"}"><div class="name">Quarantine</div>
       <div class="value">${st.quarantine_files} files</div><div class="detail">batches that failed a hard check</div></div>
     <div class="layer wide" data-level="${transformLevel}">

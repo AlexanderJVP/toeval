@@ -1,6 +1,6 @@
 # 0009. IRCEL-CELINE air quality: NO2, PM10, PM2.5 and O3 at 15 stations
 
-- Status: accepted (steps 1 and 2 of 3 built: connector, staging, `mart_air_hourly`, quality checks; step 3 in progress: history downloaded and the stream resumed on 2026-10-21, no-data codes and the join built on 2026-10-22, the console follows)
+- Status: accepted, done 2026-10-22 (connector, staging, `mart_air_hourly`, quality checks; history downloaded and the stream resumed on 2026-10-21; no-data codes, the join and the console on 2026-10-22)
 - Date: 2026-10-20
 
 ## Context
@@ -143,4 +143,4 @@ The station → weather point mapping (`STATIONS.near`) is not used by the join 
 
 1. Connector, recorded fixtures, tests, this ADR; stream registered but paused (built).
 2. Staging, `mart_air_hourly` with the −1 h shift, per-series quality checks, and a soft value-range check (built).
-3. Download the history (resume the stream) (done 2026-10-21), join air quality into the combined hourly table, and the console.
+3. Download the history (resume the stream), join air quality into the combined hourly table, and the console (done 2026-10-22).
