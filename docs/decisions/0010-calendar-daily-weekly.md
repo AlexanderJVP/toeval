@@ -1,6 +1,6 @@
 # 0010. A shared calendar and aligned daily and weekly marts
 
-- Status: accepted (owner, 2026-10-22); step 1 of 3 built
+- Status: accepted (owner, 2026-10-22); steps 1 and 2 of 3 built
 - Date: 2026-10-22
 
 ## Context
@@ -85,6 +85,12 @@ A missing weekday adds an error of about 10% of the week-to-week variation. That
 - 2020–21's autumn break is the official exceptional two weeks (2–15 November 2020). COVID school closures that were not official holidays (such as those from March 2020) are not in the table (see Consequences).
 - `tests/test_calendar.py` cross-checks the two independent sources: every Ascension break starts on the computed Easter + 39 days, every carnival week contains Ash Wednesday, every Easter break contains Easter Monday; lengths, weekdays and non-overlap are checked too. Mutation-checked (Brussels → UTC days, Ascension one day off).
 - The calendar needs no raw data, so it always builds; `outputs_missing` only counts it once some raw data exists, so an empty warehouse doesn't trigger a transform.
+
+### Step 2, built (2026-10-22)
+
+- `sql/marts/daily.sql` and `sql/marts/weekly.sql`, with the rules above. Days are taken from `hour_start_local`, so every hour belongs to the Brussels day it starts in. Daily rows run from the first to the last day of the hourly table (its last days hold only Elia's load forecast, so their measured values are NULL).
+- `tests/test_daily.py`: one synthetic fortnight with the 25-hour day, covering 22 of 24 hours (kept), 21 of 24 and 22 of 25 (NULL), a rain sum with one missing hour, and a week without its Saturday. Mutation-checked: an 80% threshold, a fixed 24-hour day, a 90% rule for sums, UTC days and a 6-day week each fail a test.
+- On the real data: 4,319 days (2015-01-01 to 2026-10-28) and 618 weeks. Days with a value: load 4,311, temperature and precipitation 4,306, NO2 3,836, PM10 4,163, O3 3,887. Weeks with a value: load 615, temperature 614, NO2 393, PM10 542, O3 439 (the calibration expected about 390 NO2 weeks). Cross-check: the daily load means times the day's hours give 80.2 TWh for 2025, the same as the hourly mart.
 
 ## Consequences
 

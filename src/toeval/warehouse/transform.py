@@ -93,6 +93,13 @@ MODELS = (
         ("mart_energy_hourly", "mart_weather_hourly", "mart_air_hourly"),
     ),
     Model("mart_calendar_day", "marts", "marts/calendar_day.sql", calendar.REFERENCE_VIEWS),
+    Model(
+        "mart_daily",
+        "marts",
+        "marts/daily.sql",
+        ("mart_energy_weather_hourly", "mart_calendar_day"),
+    ),
+    Model("mart_weekly", "marts", "marts/weekly.sql", ("mart_daily",)),
 )
 
 # Check name -> subject ("<source>/<stream>") -> the highest value that is still ok.

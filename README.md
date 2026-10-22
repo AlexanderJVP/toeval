@@ -28,7 +28,8 @@ Two projects will sit on top of it:
 - `mart_weather_hourly`: weather per location and hour, aligned to the same hour intervals (see below).
 - `mart_energy_weather_hourly`: one row per hour with the energy columns, the mean weather over the 6 land points, offshore wind, and air quality at one fixed Antwerp reference station (42R801 Borgerhout).
 - `mart_air_hourly`: air quality per station and hour, the four pollutants as columns, on the same hour intervals.
-- `mart_calendar_day`: one row per Brussels day from 2015 (23 or 25 hours on DST days), with the ISO week, weekday, the 10 Belgian public holidays and the Flemish school holidays, checked against the official calendars ([ADR 0010](docs/decisions/0010-calendar-daily-weekly.md)). Daily and weekly value tables follow.
+- `mart_calendar_day`: one row per Brussels day from 2015 (23 or 25 hours on DST days), with the ISO week, weekday, the 10 Belgian public holidays and the Flemish school holidays, checked against the official calendars ([ADR 0010](docs/decisions/0010-calendar-daily-weekly.md)).
+- `mart_daily` and `mart_weekly`: the calendar plus every energy, weather and air series per Brussels day and ISO week. Missing hours are never filled in: a daily mean needs at least 90% of the day's real hours (a threshold whose bias was measured on the real data), a daily rain sum needs every hour, and a week needs all 7 days. Count columns show how complete each value is.
 
 For 2025 the mart gives a Belgian load of 80.2 TWh, solar 10.2 TWh and wind 12.0 TWh.
 
