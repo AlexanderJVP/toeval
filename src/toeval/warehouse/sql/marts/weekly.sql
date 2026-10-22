@@ -3,7 +3,8 @@
 -- and break the weekday/weekend pattern. A weekly value is the mean of the 7 daily values (the
 -- sum, for precipitation) and is NULL unless all 7 days have one; a missing weekday would add an
 -- error of about 10% of the week-to-week variation (ADR 0010). Weeks at the edges of the data
--- have fewer than 7 days and so no values. *_days count the days with a value.
+-- have fewer than 7 days and so no values. *_days count the days with a value. Days past the end
+-- of the calendar have no week_start (and no values) and are left out; mart_daily keeps them.
 -- Input: mart_daily.
 SELECT
     week_start,
@@ -52,5 +53,6 @@ SELECT
     count(air_antwerp_pm25_ugm3) AS air_antwerp_pm25_days,
     count(air_antwerp_o3_ugm3) AS air_antwerp_o3_days
 FROM mart_daily
+WHERE week_start IS NOT NULL
 GROUP BY week_start
 ORDER BY week_start

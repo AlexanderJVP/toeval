@@ -15,7 +15,7 @@ The working backlog: where the last session stopped and what comes next, in orde
   - `mart_calendar_day`: Brussels days 2015-01-01 to 2030-08-31, ISO weeks, 23/25-hour DST days, the 10 public holidays (computed) and the Flemish school holidays (CSV, every school year 2014–15 to 2029–30 verified on official sources).
   - `mart_daily` (a mean needs ≥ 90% of the day's real hours; rain sums need every hour) and `mart_weekly` (from days; all 7 needed). The 90% rule's bias was measured on the real data (ADR 0010).
   - The console's marts label lists them.
-- 254 tests pass and CI is green. The transform takes ~35–40 s.
+- 255 tests pass and CI is green. The transform takes ~35–40 s.
 
 ## Next: Statbel / Antwerp open data
 

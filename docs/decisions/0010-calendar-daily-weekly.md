@@ -89,6 +89,7 @@ A missing weekday adds an error of about 10% of the week-to-week variation. That
 ### Step 2, built (2026-10-22)
 
 - `sql/marts/daily.sql` and `sql/marts/weekly.sql`, with the rules above. Days are taken from `hour_start_local`, so every hour belongs to the Brussels day it starts in. Daily rows run from the first to the last day of the hourly table (its last days hold only Elia's load forecast, so their measured values are NULL).
+- The days come from the hourly data and the calendar is LEFT JOINed (a repo review's finding, 2026-10-22): a day past the end of the school-holiday table keeps its row, with NULL calendar columns and NULL values because `day_hours` is unknown, instead of disappearing without notice. `mart_weekly` leaves such days out (they have no `week_start`). Tested and mutation-checked in `tests/test_daily.py`.
 - `tests/test_daily.py`: one synthetic fortnight with the 25-hour day, covering 22 of 24 hours (kept), 21 of 24 and 22 of 25 (NULL), a rain sum with one missing hour, and a week without its Saturday. Mutation-checked: an 80% threshold, a fixed 24-hour day, a 90% rule for sums, UTC days and a 6-day week each fail a test.
 - On the real data: 4,319 days (2015-01-01 to 2026-10-28) and 618 weeks. Days with a value: load 4,311, temperature and precipitation 4,306, NO2 3,836, PM10 4,163, O3 3,887. Weeks with a value: load 615, temperature 614, NO2 393, PM10 542, O3 439 (the calibration expected about 390 NO2 weeks). Cross-check: the daily load means times the day's hours give 80.2 TWh for 2025, the same as the hourly mart.
 

@@ -125,6 +125,32 @@ def test_a_daily_sum_needs_every_hour(settings: Settings, con: duckdb.DuckDBPyCo
     assert day(con, settings, "2026-10-25", "precipitation_mm") == (25.0,)  # 25 hours of 1 mm
 
 
+def test_a_day_past_the_calendar_keeps_its_row(
+    settings: Settings, store: StateStore, raw: Raw, con: duckdb.DuckDBPyConnection
+) -> None:
+    # The school-holiday table (and so mart_calendar_day) ends on Saturday 2030-08-31.
+    start = datetime(2030, 8, 30, 22, tzinfo=UTC)  # 2030-08-31 00:00 Brussels
+    end = datetime(2030, 9, 1, 22, tzinfo=UTC)  # 2030-09-02 00:00 Brussels
+    for name, make in {"load": load_rows, "wind": wind_rows, "solar": solar_rows}.items():
+        raw.write("elia", name, make(start, end, lambda _t: 100.0), at=end)
+    for loc in LOCATIONS:
+        raw.weather(weather_rows(start, end + H, lambda _t: {}, location=loc.name), at=end)
+    air(raw, air_rows(start, end, lambda _t: 20.0), at=end)
+    transform(settings, store, now=end)
+
+    assert rows(con, settings, "mart_daily",
+                "SELECT day::VARCHAR, day_hours, week_start::VARCHAR, school_holiday_flanders, "
+                "load_mw, load_hours FROM {model} ORDER BY day") == [
+        ("2030-08-31", 24, "2030-08-26", "zomervakantie", 100.0, 24),
+        # Past the table: the row stays, the calendar and so the values are unknown.
+        ("2030-09-01", None, None, None, None, 24),
+    ]  # fmt: skip
+    assert rows(con, settings, "mart_weekly",
+                "SELECT week_start::VARCHAR, days, load_mw FROM {model}") == [
+        ("2030-08-26", 1, None),
+    ]  # fmt: skip
+
+
 # -- weeks ---------------------------------------------------------------------------------------
 
 

@@ -187,7 +187,7 @@ revision_window = "21d"
 
 ```powershell
 uv run pytest                  # offline: recorded API responses, fake clocks, no sleeping
-uv run pytest -m live          # smoke test against the real Elia API
+uv run pytest -m live          # smoke tests against the real Elia, Open-Meteo and IRCEL APIs
 uv run ruff check . ; uv run ruff format .
 uv run pre-commit install      # ruff + hygiene hooks on every commit
 ```

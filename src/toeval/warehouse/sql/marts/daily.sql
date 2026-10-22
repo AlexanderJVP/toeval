@@ -1,6 +1,10 @@
 -- One row per Brussels day (docs/decisions/0010): the calendar plus mart_energy_weather_hourly
--- aggregated over the day's real hours (day_hours: 23, 24 or 25), from the first to the last day
--- with any hourly row. Missing hours are never filled in:
+-- aggregated over the day's real hours (day_hours: 23, 24 or 25), one row per day from the first
+-- to the last day with any hourly row. The days come from the hourly data and the calendar is
+-- LEFT JOINed, so a day past the end of the calendar (the school-holiday table) is never dropped:
+-- it keeps its row with NULL calendar columns, and NULL values because day_hours is unknown (the
+-- calendar/school_holidays check warns 180 days before that happens). Missing hours are never
+-- filled in:
 --   * a mean is NULL unless at least 90% of the day's hours have a value (>= 22 of 24, 21 of 23,
 --     23 of 25). Calibrated on the real data: the hours that go missing bias the mean by under 2%
 --     of the day-to-day variation, even in the worst case (ADR 0010, "Calibration");
@@ -63,11 +67,14 @@ agg AS (
         count(air_antwerp_pm25_ugm3) AS air_antwerp_pm25_hours,
         count(air_antwerp_o3_ugm3) AS air_antwerp_o3_hours
     FROM h
-    JOIN mart_calendar_day AS c USING (day)
+    LEFT JOIN mart_calendar_day AS c USING (day)
     GROUP BY h.day
+),
+days AS (
+    SELECT unnest(generate_series(min(day), max(day), INTERVAL 1 DAY))::DATE AS day FROM h
 )
 SELECT
-    c.day,
+    days.day,
     c.day_start_utc,
     c.day_hours,
     c.iso_year,
@@ -78,7 +85,7 @@ SELECT
     c.public_holiday,
     c.school_holiday_flanders,
     agg.* EXCLUDE (day, day_hours)
-FROM mart_calendar_day AS c
+FROM days
+LEFT JOIN mart_calendar_day AS c USING (day)
 LEFT JOIN agg USING (day)
-WHERE c.day BETWEEN (SELECT min(day) FROM h) AND (SELECT max(day) FROM h)
-ORDER BY c.day
+ORDER BY days.day
