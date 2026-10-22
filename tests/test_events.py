@@ -186,7 +186,8 @@ def test_a_transform_reports_each_model(settings: Settings, store: StateStore) -
 
     assert recorder.types()[0] == "transform_started"
     built = [e for e in recorder.events if e["type"] == "model_built"]
-    assert [(e["model"], e["rows"]) for e in built] == [("stg_elia_load", 4)]
-    assert recorder.types().count("model_skipped") == len(MODELS) - 1
+    assert [e["model"] for e in built] == ["stg_elia_load", "mart_calendar_day"]
+    assert built[0]["rows"] == 4
+    assert recorder.types().count("model_skipped") == len(MODELS) - len(built)
     assert recorder.events[-1]["type"] == "transform_finished"
     assert recorder.events[-1]["status"] == "success"

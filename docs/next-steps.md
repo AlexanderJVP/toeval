@@ -11,13 +11,13 @@ The working backlog: where the last session stopped and what comes next, in orde
   - Staging drops "no data" codes below −1000 µg/m³ (IRCEL's −9399.06 in 2021), guarded by `no_data_codes`.
   - `mart_energy_weather_hourly` has `air_antwerp_*_ugm3` from one fixed reference station, 42R801 Borgerhout (the owner's decision and its reasons: ADR 0009, "Join").
   - The console's marts label mentions air; the IRCEL stream card was checked (36 h freshness limit).
-- 237 tests pass and CI is green. The transform takes ~25–37 s.
+- 250 tests pass and CI is green. The transform takes ~25–37 s.
 
 ## Next: the shared calendar mart (ADR 0010, approved 2026-10-22)
 
 The plan, the 90% day rule's bias calibration and the week rule are in ADR 0010.
 
-1. **Step 1, `mart_calendar_day`** (from 2015-01-01): ISO week, weekday, weekend, `day_hours` (23/24/25), the 10 public holidays computed in Python (Easter algorithm) and tested against published dates, Flemish school holidays from a hand-checked CSV (school years 2014–15 onwards, each year verified on onderwijs.vlaanderen.be or listed as unverified in the ADR), and the `calendar/school_holidays` horizon check (warns < 180 days ahead).
+1. ~~**Step 1, `mart_calendar_day`**~~ (done 2026-10-22; every school year 2014–15 to 2029–30 verified) (from 2015-01-01): ISO week, weekday, weekend, `day_hours` (23/24/25), the 10 public holidays computed in Python (Easter algorithm) and tested against published dates, Flemish school holidays from a hand-checked CSV (school years 2014–15 onwards, each year verified on onderwijs.vlaanderen.be or listed as unverified in the ADR), and the `calendar/school_holidays` horizon check (warns < 180 days ahead).
 2. **Step 2, `mart_daily` and `mart_weekly`** from `mart_energy_weather_hourly`: means need ≥ 90% of the day's real hours, precipitation sums need all; weeks need all 7 days. `*_hours` / `*_days` counts for the main series. Tests on synthetic raw (23/25-hour days, the 90% boundary, a missing Saturday) with mutation checks.
 3. **Step 3:** docs and the console's marts label.
 

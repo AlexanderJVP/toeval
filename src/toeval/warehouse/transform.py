@@ -3,7 +3,8 @@
 Everything downstream of raw is a pure function of raw, so a transform is always a full rebuild:
 each model's SQL (in `sql/`) runs in an in-memory DuckDB over Parquet views and is written to
 one Parquet file, replaced atomically. SQL files only reference view names
-(`raw_<source>_<stream>`, `stg_*`, `mart_*`), never paths, so they port to another engine.
+(`raw_<source>_<stream>`, `stg_*`, `mart_*`, and `ref_*` reference data registered from
+`calendar.py`), never paths, so they port to another engine.
 
 Quality checks are SQL too (`sql/quality/<source>/<check>.sql`, returning subject/value/details,
 where subject is "<source>/<stream>"). They warn instead of failing: the data is what the source
@@ -27,6 +28,7 @@ from toeval.config import Settings
 from toeval.connectors.spec import StreamSpec
 from toeval.events import NULL_SINK, EventSink
 from toeval.state import QualityResult, StateStore
+from toeval.warehouse import calendar
 
 log = logging.getLogger(__name__)
 
@@ -90,6 +92,7 @@ MODELS = (
         "marts/energy_weather_hourly.sql",
         ("mart_energy_hourly", "mart_weather_hourly", "mart_air_hourly"),
     ),
+    Model("mart_calendar_day", "marts", "marts/calendar_day.sql", calendar.REFERENCE_VIEWS),
 )
 
 # Check name -> subject ("<source>/<stream>") -> the highest value that is still ok.
@@ -142,6 +145,7 @@ CHECKS = (
         ("raw_irceline_hourly", "stg_irceline_hourly", "mart_air_hourly"),
     ),
     Check("irceline", "revision_lag", "days", ("raw_irceline_hourly",), PER_STREAM),
+    Check("calendar", "school_holidays", "days", ("ref_school_holidays_flanders",)),
 )
 
 
@@ -180,6 +184,8 @@ def outputs_missing(settings: Settings) -> bool:
     """True if a model that *can* be built (its raw inputs exist) has no output yet. Models of
     streams that were never ingested don't count, or run-due would transform on every tick."""
     available = {r.view for r in RAW_INPUTS if _has_raw(settings, r)}
+    if available:  # the calendar can always be built, but alone it isn't worth a transform
+        available |= set(calendar.REFERENCE_VIEWS)
     for model in MODELS:
         if set(model.inputs) <= available:
             if not _output_path(settings, model).exists():
@@ -255,7 +261,7 @@ def _transform(
     con = duckdb.connect()
     try:
         con.execute("SET TimeZone = 'UTC'")
-        available = _register_raw(con, settings)
+        available = _register_raw(con, settings) | calendar.register(con)
         skipped = []
         for index, model in enumerate(MODELS, 1):
             progress = {"model": model.name, "layer": model.layer, "index": index}

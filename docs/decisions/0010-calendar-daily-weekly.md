@@ -1,6 +1,6 @@
 # 0010. A shared calendar and aligned daily and weekly marts
 
-- Status: accepted (owner, 2026-10-22); step 1 of 3 in progress
+- Status: accepted (owner, 2026-10-22); step 1 of 3 built
 - Date: 2026-10-22
 
 ## Context
@@ -76,6 +76,15 @@ Calibration, 612 weeks:
 | error of one missing weekday: systematic / typical per week, as % of the week-to-week std | −3.0% / 10.3% | +1.0% / 7.3% | −1.6% / 11.0% |
 
 A missing weekday adds an error of about 10% of the week-to-week variation. That is too much, so all 7 days are required. About 390 of 612 NO2 weeks remain, enough for a weekly tracker. NULL weeks probably cluster during instrument outages: the tracker must treat them as gaps, not draw across them.
+
+### Step 1, built (2026-10-22)
+
+- `toeval/warehouse/calendar.py` registers `ref_public_holidays` (computed) and `ref_school_holidays_flanders` (from `reference/school_holidays_flanders.csv`); `sql/marts/calendar_day.sql` builds `mart_calendar_day`: 5,722 days, 2015-01-01 to 2030-08-31, 157 public holidays, 16 days of 23 hours and 15 of 25.
+- **Every school year from 2014–15 to 2029–30 was verified; none is unverified.** Sources: the current official page (vlaanderen.be, 2023–24 to 2029–30) and Internet Archive snapshots of the official onderwijs.vlaanderen.be pages (2016: 2014–15 to 2019–20; 2021: 2020–21 to 2026–27). Where they overlap they agree. The module docstring lists the snapshots.
+- The table holds the official school-free periods: autumn, Christmas, carnival (krokus), Easter, summer, and the **Ascension Thursday and Friday** ("hemelvaart"), which the official calendar lists as two free days. The other free days (1 May, 11 November, Easter and Whit Monday) are public holidays anyway.
+- 2020–21's autumn break is the official exceptional two weeks (2–15 November 2020). COVID school closures that were not official holidays (such as those from March 2020) are not in the table (see Consequences).
+- `tests/test_calendar.py` cross-checks the two independent sources: every Ascension break starts on the computed Easter + 39 days, every carnival week contains Ash Wednesday, every Easter break contains Easter Monday; lengths, weekdays and non-overlap are checked too. Mutation-checked (Brussels → UTC days, Ascension one day off).
+- The calendar needs no raw data, so it always builds; `outputs_missing` only counts it once some raw data exists, so an empty warehouse doesn't trigger a transform.
 
 ## Consequences
 

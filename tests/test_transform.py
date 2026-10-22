@@ -219,7 +219,7 @@ def test_rebuild_is_idempotent(settings: Settings, store: StateStore, raw: Raw) 
     }
 
     assert first == second
-    assert len(second) == 5
+    assert len(second) == 6  # 3 staging, 2 energy marts, the calendar
     assert not list(settings.data_path.rglob("*.tmp"))
 
 
@@ -230,9 +230,10 @@ def test_streams_not_ingested_yet_are_skipped(
 
     result = run(settings, store, DAY0)
 
-    assert result.built == ("stg_elia_load",)
+    assert result.built == ("stg_elia_load", "mart_calendar_day")
     assert "mart_energy_15min" in result.skipped
-    assert result.quality == ()
+    # Elia's checks need all three streams; only the calendar's check runs.
+    assert [q.subject for q in result.quality] == ["calendar/school_holidays"]
 
 
 # -- marts ---------------------------------------------------------------------------------------
@@ -420,7 +421,7 @@ def test_results_are_stored_per_transform(settings: Settings, store: StateStore,
     result = run(settings, store, DAY0 + timedelta(days=2))
 
     latest = store.latest_quality_results()
-    assert len(latest) == len(result.quality) == 16
+    assert len(latest) == len(result.quality) == 17  # incl. calendar/school_holidays
     assert {q.checked_at for q in latest} == {DAY0 + timedelta(days=2)}
 
 
