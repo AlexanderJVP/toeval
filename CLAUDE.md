@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, done 2026-10-20: connector, staging, `mart_weather_hourly`, `mart_energy_weather_hourly`, per-stream quality limits; history since 2014-12-31 loaded, ingests daily at 12:00), then IRCEL-CELINE (ADR 0009, done 2026-10-22: connector, `stg_irceline_hourly`, `mart_air_hourly`, quality checks, 42R801 joined into `mart_energy_weather_hourly`; history since 2011 loaded, ingests daily at 12:00), then a shared calendar mart, Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
+Project **toeval** (Dutch for "coincidence"). Python package `toeval`, CLI `toeval`. Phase 1 (foundation + Elia) is complete (2026-10-19): Elia ingests daily via Task Scheduler and the full history since 2015 is loaded. Phase 2 is planned with the owner (2026-10-19): Open-Meteo first (ADR 0008, done 2026-10-20: connector, staging, `mart_weather_hourly`, `mart_energy_weather_hourly`, per-stream quality limits; history since 2014-12-31 loaded, ingests daily at 12:00), then IRCEL-CELINE (ADR 0009, done 2026-10-22: connector, `stg_irceline_hourly`, `mart_air_hourly`, quality checks, 42R801 joined into `mart_energy_weather_hourly`; history since 2011 loaded, ingests daily at 12:00), then a shared calendar (ADR 0010, done 2026-10-22: `mart_calendar_day`, `mart_daily`, `mart_weekly`), Statbel/Antwerp, and iRail last (live only, gaps while the PC is off; the owner wants to try it anyway). Telraam is set aside for now. The original brief is `claude-code-kickoff-prompt.md` (local only, gitignored, like the `docs/repo-analysis-*.md` reports). **Keep this file updated as the project evolves.** Only document commands that exist and work.
 
-**Start here when resuming:** read `docs/next-steps.md`, which has where the last session stopped, the detailed next step (the shared calendar mart, ADR 0010: step 3, the console label and closing docs) and open threads. Update it at the end of each session. Before building anything, confirm the plan for the step with the owner.
+**Start here when resuming:** read `docs/next-steps.md`, which has where the last session stopped, the detailed next step (Statbel / Antwerp open data: questions and a plan first) and open threads. Update it at the end of each session. Before building anything, confirm the plan for the step with the owner.
 
 ## Commands
 
@@ -46,7 +46,7 @@ A personal portfolio data platform (owner: applied informatics / AI-ML student i
 ## Phases
 
 1. **Foundation + Elia** (done): tooling, connector interface, Elia connector (backfill + incremental), raw → staging → one mart, quality checks, tests, Task Scheduler job, README.
-2. More sources, in this order (owner, 2026-10-19): Open-Meteo (done), IRCEL-CELINE (done), a shared calendar mart (aligned daily/weekly grains), Statbel/Antwerp, iRail last. Telraam is set aside for now.
+2. More sources, in this order (owner, 2026-10-19): Open-Meteo (done), IRCEL-CELINE (done), a shared calendar mart (done) (aligned daily/weekly grains), Statbel/Antwerp, iRail last. Telraam is set aside for now.
 3. Correlation tracker (weekly job, static report or small dashboard).
 4. JEPA + baselines, results in README.
 5. Public dashboard/report.

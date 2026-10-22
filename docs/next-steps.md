@@ -11,22 +11,23 @@ The working backlog: where the last session stopped and what comes next, in orde
   - Staging drops "no data" codes below −1000 µg/m³ (IRCEL's −9399.06 in 2021), guarded by `no_data_codes`.
   - `mart_energy_weather_hourly` has `air_antwerp_*_ugm3` from one fixed reference station, 42R801 Borgerhout (the owner's decision and its reasons: ADR 0009, "Join").
   - The console's marts label mentions air; the IRCEL stream card was checked (36 h freshness limit).
-- 254 tests pass and CI is green. The transform takes ~25–37 s.
+- Phase 2, shared calendar (ADR 0010) is done (2026-10-22).
+  - `mart_calendar_day`: Brussels days 2015-01-01 to 2030-08-31, ISO weeks, 23/25-hour DST days, the 10 public holidays (computed) and the Flemish school holidays (CSV, every school year 2014–15 to 2029–30 verified on official sources).
+  - `mart_daily` (a mean needs ≥ 90% of the day's real hours; rain sums need every hour) and `mart_weekly` (from days; all 7 needed). The 90% rule's bias was measured on the real data (ADR 0010).
+  - The console's marts label lists them.
+- 254 tests pass and CI is green. The transform takes ~35–40 s.
 
-## Next: the shared calendar mart (ADR 0010, approved 2026-10-22)
+## Next: Statbel / Antwerp open data
 
-The plan, the 90% day rule's bias calibration and the week rule are in ADR 0010.
+Start with questions to the owner and a plan, then an ADR (0011), as with every step.
 
-1. ~~**Step 1, `mart_calendar_day`**~~ (done 2026-10-22; every school year 2014–15 to 2029–30 verified) (from 2015-01-01): ISO week, weekday, weekend, `day_hours` (23/24/25), the 10 public holidays computed in Python (Easter algorithm) and tested against published dates, Flemish school holidays from a hand-checked CSV (school years 2014–15 onwards, each year verified on onderwijs.vlaanderen.be or listed as unverified in the ADR), and the `calendar/school_holidays` horizon check (warns < 180 days ahead).
-2. ~~**Step 2, `mart_daily` and `mart_weekly`**~~ (done 2026-10-22) from `mart_energy_weather_hourly`: means need ≥ 90% of the day's real hours, precipitation sums need all; weeks need all 7 days. `*_hours` / `*_days` counts for the main series. Tests on synthetic raw (23/25-hour days, the 90% boundary, a missing Saturday) with mutation checks.
-3. **Step 3:** docs and the console's marts label.
+- Monthly (or yearly) files keyed by reference period: the `period` watermark shape, which no real connector uses yet (`tests/fakes.py` has a fake for it).
+- Which datasets? They must carry a time dimension that lines up with the daily/weekly marts or needs a monthly grain (ADR 0010 left months until Statbel needs them).
+- Verify endpoints, licences and update schedules at the source, not from memory.
 
 ## After that (Phase 2, owner's order)
 
-Each one starts with questions and a plan, then its own ADR.
-
-1. **Statbel / Antwerp open data:** monthly files keyed by reference period (the `period` watermark shape; `tests/fakes.py` has a fake for it).
-2. **iRail last:** live-only polling with ETags, gaps while the PC is off (accepted by the owner). The per-*source* rate limit deferred in ADR 0005 is needed here.
+1. **iRail last:** live-only polling with ETags, gaps while the PC is off (accepted by the owner). The per-*source* rate limit deferred in ADR 0005 is needed here.
 
 Telraam is set aside. Phases 3–5 (correlation tracker, JEPA + baselines, public report) must not be scaffolded early.
 
@@ -37,3 +38,5 @@ Telraam is set aside. Phases 3–5 (correlation tracker, JEPA + baselines, publi
 - **Revision windows are provisional** for all sources: Elia 14 d + 90 d deep, Open-Meteo 120 d deep, IRCEL 400 d deep. Revisit them once `revision_lag` has collected a few months of evidence.
 - **IRCEL validation:** whether validated values replace provisional ones is undocumented. The first monthly 400-day deep re-check after the download (around 2026-11-20) will show it in `revision_lag`.
 - **Known limitation (ADR 0004):** rows a source withdraws stay in raw and staging.
+- **School-holiday table:** add each new school year when the Flemish government publishes it (6 rows in `warehouse/reference/school_holidays_flanders.csv`, verified on the official page). The table now ends 2030-08-31; `calendar/school_holidays` warns from 2030-03-05 (fewer than 180 days left).
+- **For Phase 3 (ADR 0010, Consequences):** COVID lockdowns (2020–2021) are not in the calendar, so the tracker will find "2020" itself as a strong correlation; raise it with the owner then. NULL weeks cluster during instrument outages: treat them as gaps, never draw across them.

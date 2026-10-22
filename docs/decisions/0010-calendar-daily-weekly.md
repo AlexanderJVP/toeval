@@ -1,6 +1,6 @@
 # 0010. A shared calendar and aligned daily and weekly marts
 
-- Status: accepted (owner, 2026-10-22); steps 1 and 2 of 3 built
+- Status: accepted (owner, 2026-10-22), done 2026-10-22
 - Date: 2026-10-22
 
 ## Context
