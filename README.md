@@ -125,6 +125,7 @@ Each significant decision has a short record with its context and trade-offs:
 | [0007](docs/decisions/0007-admin-console.md) | A local admin console that never becomes a second writer |
 | [0008](docs/decisions/0008-open-meteo-weather.md) | Open-Meteo ERA5 weather at 7 points, and how its hours line up with Elia's |
 | [0009](docs/decisions/0009-irceline-air-quality.md) | IRCEL-CELINE air quality at 15 curated stations |
+| [0010](docs/decisions/0010-calendar-daily-weekly.md) | A shared calendar and aligned daily and weekly marts (in progress) |
 
 ## Running it
 
